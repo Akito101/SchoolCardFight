@@ -5,9 +5,8 @@ using DG.Tweening;
 
 public class CardView : MonoBehaviour
 {
-    public Image artImage;
-    public TextMeshProUGUI nameText;
-    public RectTransform playPosition;
+    public Image cardView;
+    public RectTransform boardPosition;
     public Sprite cardBackSprite;
 
     private RectTransform rectTransform;
@@ -37,25 +36,22 @@ public class CardView : MonoBehaviour
 
     private void ShowFaceDown()
     {
-        artImage.sprite = cardBackSprite;
-        artImage.color = Color.white;
-        nameText.text = "";
+        cardView.sprite = cardBackSprite;
+        cardView.color = Color.white;
     }
 
     private void ShowFaceUp()
     {
-        if (currentCard.cardArt != null)
+        if (currentCard.cardFrontSprite != null)
         {
-            artImage.sprite = currentCard.cardArt;
-            artImage.color = Color.white;
+            cardView.sprite = currentCard.cardFrontSprite;
+            cardView.color = Color.white;
         }
         else
         {
-            artImage.sprite = null;
-            artImage.color = new Color(0.7f, 0.7f, 0.9f);
+            cardView.sprite = null;
+            cardView.color = new Color(0.7f, 0.7f, 0.9f);
         }
-
-        nameText.text = $"{currentCard.cardName}\n({currentCard.category})";
     }
 
     public void SetOriginalPosition()
@@ -63,14 +59,14 @@ public class CardView : MonoBehaviour
         originalPosition = rectTransform.anchoredPosition;
     }
 
-    public void PlayCurrentCard()
+    public void DrawCardAnimation()
     {
         rectTransform.DOKill(); // stop any previous animation on this object
 
         Sequence seq = DOTween.Sequence();
 
         // Move to center while starting the flip
-        seq.Append(rectTransform.DOAnchorPos(playPosition.anchoredPosition, 0.5f).SetEase(Ease.OutQuad));
+        seq.Append(rectTransform.DOAnchorPos(boardPosition.anchoredPosition, 0.5f).SetEase(Ease.OutQuad));
 
         // Flip: shrink to edge-on
         seq.Join(rectTransform.DOScaleX(0f, 0.25f).SetEase(Ease.InQuad));
@@ -83,7 +79,5 @@ public class CardView : MonoBehaviour
 
         // A little landing bounce for extra juice
         seq.Append(rectTransform.DOPunchScale(new Vector3(0.1f, 0.1f, 0f), 0.2f, 4, 0.5f));
-
-        seq.OnComplete(() => Debug.Log("Card played and revealed!"));
     }
 }

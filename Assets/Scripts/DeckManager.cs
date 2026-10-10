@@ -46,8 +46,10 @@ public class DeckManager : MonoBehaviour
             return null;
         }
 
-        CardData drawnCard = deck[0];
-        deck.RemoveAt(0);
+        int topIndex = deck.Count - 1;
+        CardData drawnCard = deck[topIndex];
+        deck.RemoveAt(topIndex);
+
         return drawnCard;
     }
 

@@ -5,6 +5,7 @@ public class SwipeToPlay : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 {
     public float swipeThreshold = 150f;
     public CardView cardView;
+    public BattleTestManager battleTestManager;
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -20,11 +21,13 @@ public class SwipeToPlay : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     public void OnEndDrag(PointerEventData eventData)
     {
         float verticalDistance = eventData.position.y - eventData.pressPosition.y;
-        Debug.Log($"Drag ended. Vertical distance: {verticalDistance}");
 
         if (verticalDistance > swipeThreshold)
         {
-            cardView.PlayCurrentCard();
+            if (battleTestManager.DrawNextCard())
+            {
+                cardView.DrawCardAnimation();
+            }
         }
     }
 }

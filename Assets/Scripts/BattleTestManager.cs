@@ -5,21 +5,24 @@ public class BattleTestManager : MonoBehaviour
 {
     public DeckManager deckManager;
     public CardView cardView;
-    public CardStackView cardStackView;
+    public PlayerCardStackView playerCardStackView;
     public List<CardData> testCards;
 
     void Start()
     {
         deckManager.BuildDeck(testCards, null);
         cardView.SetOriginalPosition();
-        cardStackView.BuildStack(deckManager.CardsRemaining());
+        playerCardStackView.BuildStack(deckManager.CardsRemaining());
     }
 
-    public void OnDrawButtonPressed()
+    public bool DrawNextCard()
     {
         CardData drawn = deckManager.DrawCard();
+        if (drawn == null) return false;
+
         cardView.Setup(drawn);
-        cardStackView.RemoveTopCard();
+        playerCardStackView.RemoveTopCard();
         Debug.Log($"Cards remaining: {deckManager.CardsRemaining()}");
+        return true;
     }
 }

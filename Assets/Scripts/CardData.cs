@@ -21,7 +21,7 @@ public enum ArtifactEffect
 public class CardData : ScriptableObject
 {
     public string cardName;
-    public Sprite cardArt;
+    public Sprite cardFrontSprite;
     public CardCategory category;
 
     [Header("Only fill these in if this card is an Artifact")]
