@@ -3,13 +3,13 @@ using UnityEngine;
 
 public class DeckManager : MonoBehaviour
 {
-    [Header("Deck Setup")]
-    public List<CardData> deck = new List<CardData>();
+    [Header("PlayerCardFrontDeck Setup")]
+    [SerializeField] private List<CardData> playerCardFrontDeck = new List<CardData>();
 
-    // Call this to build and shuffle a fresh deck before a battle starts
+    // Call this to build and shuffle a fresh playerCardFrontDeck before a battle starts
     public void BuildDeck(List<CardData> baseCards, CardData artifactCard)
     {
-        deck = new List<CardData>(baseCards);
+        playerCardFrontDeck = new List<CardData>(baseCards);
         ShuffleDeck();
 
         if (artifactCard != null)
@@ -21,40 +21,40 @@ public class DeckManager : MonoBehaviour
     private void ShuffleDeck()
     {
         // Fisher-Yates shuffle - a standard, reliable way to randomize a list
-        for (int i = deck.Count - 1; i > 0; i--)
+        for (int i = playerCardFrontDeck.Count - 1; i > 0; i--)
         {
             int randomIndex = Random.Range(0, i + 1);
-            (deck[i], deck[randomIndex]) = (deck[randomIndex], deck[i]);
+            (playerCardFrontDeck[i], playerCardFrontDeck[randomIndex]) = (playerCardFrontDeck[randomIndex], playerCardFrontDeck[i]);
         }
     }
 
     private void InsertArtifactEarly(CardData artifactCard)
     {
-        // Guarantees the Artifact lands somewhere in the first half of the deck,
+        // Guarantees the Artifact lands somewhere in the first half of the playerCardFrontDeck,
         // so players never draw it too late to use it
-        int maxPosition = Mathf.Max(1, deck.Count / 2);
+        int maxPosition = Mathf.Max(1, playerCardFrontDeck.Count / 2);
         int insertPosition = Random.Range(0, maxPosition);
-        deck.Insert(insertPosition, artifactCard);
+        playerCardFrontDeck.Insert(insertPosition, artifactCard);
+    }
+
+    public int CardsRemaining()
+    {
+        return playerCardFrontDeck.Count;
     }
 
     // Call this when the player's turn starts - removes and returns the top card
     public CardData DrawCard()
     {
-        if (deck.Count == 0)
+        if (playerCardFrontDeck.Count == 0)
         {
-            Debug.Log("Deck is empty - this is your lose condition trigger point");
+            Debug.Log("playerCardFrontDeck is empty - this is your lose condition trigger point");
             return null;
         }
 
-        int topIndex = deck.Count - 1;
-        CardData drawnCard = deck[topIndex];
-        deck.RemoveAt(topIndex);
+        int topIndex = playerCardFrontDeck.Count - 1;
+        CardData drawnCard = playerCardFrontDeck[topIndex];
+        playerCardFrontDeck.RemoveAt(topIndex);
 
         return drawnCard;
-    }
-
-    public int CardsRemaining()
-    {
-        return deck.Count;
     }
 }

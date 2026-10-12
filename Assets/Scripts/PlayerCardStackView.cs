@@ -3,20 +3,34 @@ using System.Collections.Generic;
 
 public class PlayerCardStackView : MonoBehaviour
 {
-    public GameObject cardBackPrefab;
-    public RectTransform stackParent;
-    public Vector2 stackOffset = new Vector2(12f, 0f);
-    public int maxVisibleLayers = 4;
+    [SerializeField] private CardView cardPrefab;
+    [SerializeField] private GameObject cardBackPrefab;
 
-    private List<GameObject> playerCardList = new List<GameObject>();
 
-    public void BuildStack(int cardCount)
+    private RectTransform playerDeckTransform;
+    private Vector2 stackOffset = new Vector2(12f, 0f);
+    private int maxVisibleLayers = 4;
+    private List<GameObject> playerCardBackDeck = new List<GameObject>();
+
+    void Awake()
+    {
+        playerDeckTransform = GetComponent<RectTransform>();
+    }
+
+    public CardView SpawnCard()
+    {
+        CardView newCard = Instantiate(cardPrefab, transform.parent);
+        newCard.SetOriginalPosition(playerDeckTransform.anchoredPosition);
+        return newCard;
+    }
+
+    public void BuildDeck(int cardCount)
     {
         ClearStack();
         for (int i = 0; i < cardCount; i++)
         {
-            GameObject card = Instantiate(cardBackPrefab, stackParent);
-            playerCardList.Add(card);
+            GameObject card = Instantiate(cardBackPrefab, playerDeckTransform);
+            playerCardBackDeck.Add(card);
         }
 
         RepositionStack();
@@ -24,20 +38,21 @@ public class PlayerCardStackView : MonoBehaviour
 
     private void ClearStack()
     {
-        foreach (GameObject card in playerCardList)
+        foreach (GameObject card in playerCardBackDeck)
         {
             Destroy(card);
         }
-        playerCardList.Clear();
+        playerCardBackDeck.Clear();
     }
 
     public void RemoveTopCard()
     {
-        if (playerCardList.Count == 0) return;
+        if (playerCardBackDeck.Count == 0) return;
 
-        GameObject topCard = playerCardList[0];
+        int topIndex = playerCardBackDeck.Count - 1;
+        GameObject topCard = playerCardBackDeck[topIndex];
         Destroy(topCard);
-        playerCardList.RemoveAt(0);
+        playerCardBackDeck.RemoveAt(topIndex);
 
         RepositionStack();
     }
@@ -46,10 +61,10 @@ public class PlayerCardStackView : MonoBehaviour
     {
         int visibleLayerCount = Mathf.Max(1, maxVisibleLayers);
 
-        for (int i = 0; i < playerCardList.Count; i++)
+        for (int i = 0; i < playerCardBackDeck.Count; i++)
         {
-            RectTransform rt = playerCardList[i].GetComponent<RectTransform>();
-            int layer = Mathf.Min(i, visibleLayerCount - 1);
+            RectTransform rt = playerCardBackDeck[i].GetComponent<RectTransform>();
+            int layer = Mathf.Min(playerCardBackDeck.Count - 1 - i, visibleLayerCount - 1);
             rt.anchoredPosition = stackOffset * layer;
             rt.SetSiblingIndex(i);
         }

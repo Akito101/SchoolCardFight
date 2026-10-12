@@ -20,7 +20,6 @@ public enum ArtifactEffect
 [CreateAssetMenu(fileName = "New Card", menuName = "Cards/Card")]
 public class CardData : ScriptableObject
 {
-    public string cardName;
     public Sprite cardFrontSprite;
     public CardCategory category;
 

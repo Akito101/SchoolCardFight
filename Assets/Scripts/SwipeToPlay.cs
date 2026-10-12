@@ -4,12 +4,11 @@ using UnityEngine.EventSystems;
 public class SwipeToPlay : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public float swipeThreshold = 150f;
-    public CardView cardView;
     public BattleTestManager battleTestManager;
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log("Begin drag detected!");
+
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -24,10 +23,7 @@ public class SwipeToPlay : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
         if (verticalDistance > swipeThreshold)
         {
-            if (battleTestManager.DrawNextCard())
-            {
-                cardView.DrawCardAnimation();
-            }
+            battleTestManager.DrawNextCard();
         }
     }
 }

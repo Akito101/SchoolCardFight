@@ -149,7 +149,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296e88e89e98afe458bca9e929632d6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeckManager
-  deck: []
+  playerCardFrontDeck: []
+  boardCardDeck: []
 --- !u!4 &203046286
 Transform:
   m_ObjectHideFlags: 0
@@ -178,7 +179,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleTestManager
   deckManager: {fileID: 203046285}
-  cardView: {fileID: 1415635635}
+  cardPrefab: {fileID: 9117296694827953077, guid: 3391f63e455a749668e757e9148f4383, type: 3}
   playerCardStackView: {fileID: 284550779}
   testCards:
   - {fileID: 11400000, guid: b0517f0d6a61ae3418ba023a85fec250, type: 2}
@@ -188,6 +189,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b606844c6713ff543a6006f123df6e99, type: 2}
   - {fileID: 11400000, guid: 1d115bfe1ad3c214a8b5f1effc6eef5a, type: 2}
   - {fileID: 11400000, guid: e730a25d03d51ff419cf77dc5e59db59, type: 2}
+  - {fileID: 11400000, guid: c35d5f3c3504f4133bcfd43b9f32299b, type: 2}
+  boardStackOffset: {x: 12, y: 0}
 --- !u!1 &242610623
 GameObject:
   m_ObjectHideFlags: 0
@@ -758,7 +761,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SwipeToPlay
   swipeThreshold: 150
-  cardView: {fileID: 1415635635}
   battleTestManager: {fileID: 203046287}
 --- !u!114 &1047174322
 MonoBehaviour:

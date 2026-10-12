@@ -1,21 +1,27 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using DG.Tweening;
 
+[RequireComponent(typeof(RectTransform), typeof(Image))]
 public class CardView : MonoBehaviour
 {
-    public Image cardView;
-    public RectTransform boardPosition;
-    public Sprite cardBackSprite;
+    [SerializeField] private Sprite cardBackSprite;
 
-    private RectTransform rectTransform;
-    private Vector2 originalPosition;
+    private Image cardView;
+    private RectTransform currentCardTransform;
+    private Vector2 playerDeckPosition;
     private CardData currentCard;
 
     void Awake()
     {
-        rectTransform = GetComponent<RectTransform>();
+        cardView = GetComponent<Image>();
+        currentCardTransform = GetComponent<RectTransform>();
+    }
+
+    public void SetOriginalPosition(Vector2 position)
+    {
+        playerDeckPosition = position;
+        currentCardTransform.anchoredPosition = position;
     }
 
     public void Setup(CardData data)
@@ -28,8 +34,8 @@ public class CardView : MonoBehaviour
 
         gameObject.SetActive(true);
         currentCard = data;
-        rectTransform.anchoredPosition = originalPosition;
-        rectTransform.localScale = Vector3.one; // reset scale in case a previous flip left it mid-shrink
+        currentCardTransform.anchoredPosition = playerDeckPosition;
+        currentCardTransform.localScale = Vector3.one; // reset scale in case a previous flip left it mid-shrink
 
         ShowFaceDown();
     }
@@ -37,7 +43,6 @@ public class CardView : MonoBehaviour
     private void ShowFaceDown()
     {
         cardView.sprite = cardBackSprite;
-        cardView.color = Color.white;
     }
 
     private void ShowFaceUp()
@@ -45,39 +50,39 @@ public class CardView : MonoBehaviour
         if (currentCard.cardFrontSprite != null)
         {
             cardView.sprite = currentCard.cardFrontSprite;
-            cardView.color = Color.white;
         }
         else
         {
             cardView.sprite = null;
-            cardView.color = new Color(0.7f, 0.7f, 0.9f);
         }
     }
 
-    public void SetOriginalPosition()
+    public CardView CreateNextDrawCard()
     {
-        originalPosition = rectTransform.anchoredPosition;
+        CardView nextCard = Instantiate(this, transform.parent);
+        nextCard.playerDeckPosition = playerDeckPosition;
+        return nextCard;
     }
 
-    public void DrawCardAnimation()
+    public void DrawCardAnimation(Vector2 destination)
     {
-        rectTransform.DOKill(); // stop any previous animation on this object
+        currentCardTransform.DOKill(); // stop any previous animation on this object
 
         Sequence seq = DOTween.Sequence();
 
         // Move to center while starting the flip
-        seq.Append(rectTransform.DOAnchorPos(boardPosition.anchoredPosition, 0.5f).SetEase(Ease.OutQuad));
+        seq.Append(currentCardTransform.DOAnchorPos(destination, 0.5f).SetEase(Ease.OutQuad));
 
         // Flip: shrink to edge-on
-        seq.Join(rectTransform.DOScaleX(0f, 0.25f).SetEase(Ease.InQuad));
+        seq.Join(currentCardTransform.DOScaleX(0f, 0.25f).SetEase(Ease.InQuad));
 
         // At the midpoint, swap the sprite to face-up
         seq.AppendCallback(() => ShowFaceUp());
 
         // Flip back to full width
-        seq.Append(rectTransform.DOScaleX(1f, 0.25f).SetEase(Ease.OutQuad));
+        seq.Append(currentCardTransform.DOScaleX(1f, 0.25f).SetEase(Ease.OutQuad));
 
         // A little landing bounce for extra juice
-        seq.Append(rectTransform.DOPunchScale(new Vector3(0.1f, 0.1f, 0f), 0.2f, 4, 0.5f));
+        seq.Append(currentCardTransform.DOPunchScale(new Vector3(0.1f, 0.1f, 0f), 0.2f, 4, 0.5f));
     }
 }
