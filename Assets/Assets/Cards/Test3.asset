@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: Test3
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: 
+  cardName: Sin3
   cardArt: {fileID: 0}
   category: 3
   isArtifact: 0
