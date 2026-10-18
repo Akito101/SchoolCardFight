@@ -8,6 +8,6 @@ public class CardDatabase : ScriptableObject
 
     public CardData GetByName(string cardName)
     {
-        return allCards.Find(c => c.cardName == cardName);
+        return allCards.Find(c => c != null && c.cardName == cardName);
     }
 }

@@ -43,6 +43,7 @@ public class MainMenuManager : MonoBehaviour
     public void OnResetProgressPressed()
     {
         PlayerCollection.Clear();
+        PlayerDeck.Clear();
         PlayerPrefs.DeleteAll();
         Debug.Log("Progress reset");
     }

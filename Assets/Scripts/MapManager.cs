@@ -50,12 +50,12 @@ public class MapManager : MonoBehaviour
 
     private void OnLevelPressed(int index)
     {
-        int owned = TotalOwnedCards();
+        int inDeck = PlayerDeck.TotalInDeck();
         int needed = levels[index].minCards;
 
-        if (owned < needed)
+        if (inDeck < needed)
         {
-            ShowMessage($"You need at least {needed} cards to fight {levels[index].enemyName}.\nYou have {owned}. Earn coins in the minigame and buy more packs!");
+            ShowMessage($"Your deck needs at least {needed} cards to fight {levels[index].enemyName}.\nYour deck has {inDeck}. Add cards in the Deck tab, or earn coins in the minigame and buy more packs!");
             return;
         }
 
