@@ -30,12 +30,26 @@ public class BoardDeckView : MonoBehaviour
         boardCardDeck.Add(cardData);
         cardView.transform.SetAsLastSibling();
 
+        // 1. Calculate random card position on the board
         Vector2 boardPosition = boardTransform.anchoredPosition
             + new Vector2(
                 UnityEngine.Random.Range(-positionJitter.x, positionJitter.x),
                 UnityEngine.Random.Range(-positionJitter.y, positionJitter.y));
-        float boardRotation = UnityEngine.Random.Range(-maximumRotation, maximumRotation);
 
-        cardView.DrawCardAnimation(boardPosition, boardRotation, onAnimationComplete);
+        // 2. Calculate perspective scale based on vertical position (Y-axis)
+        float boardHeightArea = 120f;
+        float normalizedY = Mathf.InverseLerp(
+            boardTransform.anchoredPosition.y - boardHeightArea,
+            boardTransform.anchoredPosition.y + boardHeightArea,
+            boardPosition.y
+        );
+
+        float perspectiveScale = Mathf.Lerp(0.65f, 1.1f, Mathf.Clamp01(normalizedY));
+        float depthTilt = Mathf.Lerp(-6f, 6f, Mathf.Clamp01(normalizedY));
+
+        // 3. Random rotation mixed with a slight perspective tilt
+        float cardRotation = UnityEngine.Random.Range(-maximumRotation, maximumRotation);
+
+        cardView.DrawCardAnimation(boardPosition, cardRotation, perspectiveScale, onAnimationComplete);
     }
 }
