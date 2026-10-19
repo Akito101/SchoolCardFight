@@ -22,8 +22,6 @@ public class CardData : ScriptableObject
 {
     public Sprite cardFrontSprite;
     public CardCategory category;
-
-    [Header("Only fill these in if this card is an Artifact")]
-    public bool isArtifact;
-    public ArtifactEffect artifactEffect;
+    private bool isArtifact;
+    private ArtifactEffect artifactEffect;
 }

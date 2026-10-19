@@ -33,34 +33,48 @@ public class BattleTestManager : MonoBehaviour
         SetSwipe(playerCCView, true);
     }
 
-    public bool DrawNextCard()
+    public void DrawNextCard()
     {
-        if (currentTurn != Turn.Player || isBusy) return false;
+        if (currentTurn != Turn.Player || isBusy) return;
 
-        CardData drawn = playerDeckView.DrawCard();
-        if (drawn == null) return false;
+        CardData drawnCard = playerDeckView.DrawCard();
+        if (drawnCard == null) return;
 
         isBusy = true;
         SetSwipe(playerCCView, false);
-        playerCCView.Setup(drawn);
-        boardDeckView.AddCardToBoardDeck(drawn, playerCCView, FinishPlayerTurn);
+
+        playerCCView.Setup(drawnCard);
+        boardDeckView.AddCardToBoardDeck(drawnCard, playerCCView, FinishPlayerTurn);
         if (playerDeckView.HasCardsRemaining)
         {
             playerCCView = playerCCView.CreateNextDrawCard();
         }
-        return true;
+
+        return;
     }
 
     private void FinishPlayerTurn()
     {
-        currentTurn = Turn.AI;
-        DrawAICard();
+        CheckAndResolveMatch(isPlayerWinner: true, (isMatch) =>
+        {
+            if (isMatch)
+            {
+                isBusy = false;
+                SetSwipe(playerCCView, true);
+                currentTurn = Turn.Player;
+            }
+            else
+            {
+                currentTurn = Turn.AI;
+                DrawAICard();
+            }
+        });
     }
 
     private void DrawAICard()
     {
-        CardData drawn = aiDeckView.DrawCard();
-        if (drawn == null)
+        CardData drawnCard = aiDeckView.DrawCard();
+        if (drawnCard == null)
         {
             currentTurn = Turn.Player;
             isBusy = false;
@@ -71,8 +85,8 @@ public class BattleTestManager : MonoBehaviour
             return;
         }
 
-        aiCCView.Setup(drawn);
-        boardDeckView.AddCardToBoardDeck(drawn, aiCCView, FinishAITurn);
+        aiCCView.Setup(drawnCard);
+        boardDeckView.AddCardToBoardDeck(drawnCard, aiCCView, FinishAITurn);
         if (aiDeckView.HasCardsRemaining)
         {
             aiCCView = aiCCView.CreateNextDrawCard();
@@ -81,11 +95,66 @@ public class BattleTestManager : MonoBehaviour
 
     private void FinishAITurn()
     {
-        currentTurn = Turn.Player;
-        isBusy = false;
-        if (playerDeckView.HasCardsRemaining)
+        CheckAndResolveMatch(isPlayerWinner: false, (isMatch) =>
+         {
+             if (isMatch)
+             {
+
+                 DrawAICard();
+             }
+             else
+             {
+
+                 currentTurn = Turn.Player;
+                 isBusy = false;
+                 if (playerDeckView.HasCardsRemaining)
+                 {
+                     SetSwipe(playerCCView, true);
+                 }
+             }
+         });
+    }
+
+    private void CheckAndResolveMatch(bool isPlayerWinner, System.Action<bool> onMatchResolved)
+    {
+        List<CardData> boardCards = boardDeckView.GetBoardDeck();
+        if (boardCards.Count < 2)
         {
-            SetSwipe(playerCCView, true);
+            onMatchResolved(false);
+            return;
+        }
+
+        CardData latestCard = boardCards[boardCards.Count - 1];
+        CardData previousCard = boardCards[boardCards.Count - 2];
+
+        if (latestCard.category == previousCard.category)
+        {
+            isBusy = true;
+            SetSwipe(playerCCView, false);
+
+            RectTransform winnerDeckTransform = isPlayerWinner ? playerDeckView.GetComponent<RectTransform>()
+                                                           : aiDeckView.GetComponent<RectTransform>();
+            Vector2 targetDeckPos = winnerDeckTransform.anchoredPosition;
+
+            boardDeckView.AddBoardDeckToWinnerDeck(
+            targetDeckPos,
+            boardCards =>
+            {
+                // 1. Rebuild the winner's deck with the won cards
+                if (isPlayerWinner)
+                {
+                    playerDeckView.BuildDeck(boardCards, null);
+                }
+                else
+                {
+                    aiDeckView.BuildDeck(boardCards, null);
+                }
+                onMatchResolved(true);
+            });
+        }
+        else
+        {
+            onMatchResolved(false);
         }
     }
 

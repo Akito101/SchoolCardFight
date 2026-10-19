@@ -57,7 +57,6 @@ public class PlayerDeckView : MonoBehaviour
         list.Insert(insertPosition, artifactCard);
     }
 
-    // Call this when the player's turn starts - removes and returns the top card
     public CardData DrawCard()
     {
         if (playerDeckCards.Count == 0)
