@@ -5,14 +5,21 @@ public class PlayerDeckView : MonoBehaviour
 {
     [SerializeField] private CardView cardPrefab;
 
-    private List<CardView> playerDeckCards = new List<CardView>();
+    private readonly List<CardData> playerDeckData = new List<CardData>();
+    private readonly List<CardView> playerDeckCards = new List<CardView>();
+
     private RectTransform playerDeckTransform;
     private Vector2 stackOffset = new Vector2(12f, 0f);
     private int maxVisibleLayers = 4;
 
     public bool HasCardsRemaining
     {
-        get { return playerDeckCards.Count > 0; }
+        get { return playerDeckData.Count > 4; }
+    }
+
+    public int GetCardCount()
+    {
+        return playerDeckData.Count;
     }
 
     void Awake()
@@ -25,15 +32,15 @@ public class PlayerDeckView : MonoBehaviour
         ClearDeck();
 
         // Front Deck
-        List<CardData> tempDataSet = new List<CardData>(baseCards);
-        ShuffleDeck(tempDataSet);
-        InsertArtifactEarly(tempDataSet, artifactCard);
+        playerDeckData.AddRange(baseCards);
+        ShuffleDeck(playerDeckData);
+        InsertArtifactEarly(playerDeckData, artifactCard);
 
         // Back Deck
-        foreach (CardData data in tempDataSet)
+        foreach (CardData data in playerDeckData)
         {
             CardView newCard = Instantiate(cardPrefab, playerDeckTransform);
-            newCard.Setup(data);
+            newCard.ShowFaceDown();
             playerDeckCards.Add(newCard);
         }
         RepositionStack();
@@ -59,18 +66,24 @@ public class PlayerDeckView : MonoBehaviour
 
     public CardData DrawCard()
     {
-        if (playerDeckCards.Count == 0)
+        if (playerDeckData.Count == 0)
         {
             Debug.Log("frontDeck is empty - this is your lose condition trigger point");
             return null;
         }
 
-        int topIndex = playerDeckCards.Count - 1;
-        CardView topCardView = playerDeckCards[topIndex];
-        CardData drawnCard = topCardView.GetCurrentCardData();
+        int topIndex = playerDeckData.Count - 1;
 
+        CardData drawnCard = playerDeckData[topIndex];
+        playerDeckData.RemoveAt(topIndex);
+
+        CardView topCardView = playerDeckCards[topIndex];
         playerDeckCards.RemoveAt(topIndex);
-        Destroy(topCardView.gameObject);
+
+        if (topCardView != null)
+        {
+            Destroy(topCardView.gameObject);
+        }
 
         RepositionStack();
 
@@ -83,6 +96,17 @@ public class PlayerDeckView : MonoBehaviour
         newCard.SetOriginalPosition(playerDeckTransform.anchoredPosition);
         newCard.gameObject.SetActive(false);
         return newCard;
+    }
+
+    public void PrepareDrawnCard(CardView cardView, CardData cardData)
+    {
+        if (cardView == null || cardData == null)
+        {
+            Debug.LogWarning("Cannot prepare a null card view or card data.");
+            return;
+        }
+
+        cardView.SetCardFront(cardData.cardFrontSprite);
     }
 
     private void ClearDeck()

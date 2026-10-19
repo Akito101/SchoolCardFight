@@ -5,14 +5,21 @@ public class AIDeckView : MonoBehaviour
 {
     [SerializeField] private CardView cardPrefab;
 
-    private List<CardView> aiDeckCards = new List<CardView>();
+    private readonly List<CardData> aiDeckData = new List<CardData>();
+    private readonly List<CardView> aiDeckView = new List<CardView>();
+
     private RectTransform aiDeckTransform;
     private Vector2 stackOffset = new Vector2(-12f, 0f);
     private int maxVisibleLayers = 4;
 
     public bool HasCardsRemaining
     {
-        get { return aiDeckCards.Count > 0; }
+        get { return aiDeckData.Count > 4; }
+    }
+
+    public int GetCardCount()
+    {
+        return aiDeckData.Count;
     }
 
     void Awake()
@@ -25,16 +32,16 @@ public class AIDeckView : MonoBehaviour
         ClearDeck();
 
         // Front Deck
-        List<CardData> tempDataSet = new List<CardData>(baseCards);
-        ShuffleDeck(tempDataSet);
-        InsertArtifactEarly(tempDataSet, artifactCard);
+        aiDeckData.AddRange(baseCards);
+        ShuffleDeck(aiDeckData);
+        InsertArtifactEarly(aiDeckData, artifactCard);
 
         // Back Deck
-        foreach (CardData data in tempDataSet)
+        foreach (CardData data in aiDeckData)
         {
             CardView newCard = Instantiate(cardPrefab, aiDeckTransform);
-            newCard.Setup(data);
-            aiDeckCards.Add(newCard);
+            newCard.ShowFaceDown();
+            aiDeckView.Add(newCard);
         }
         RepositionStack();
     }
@@ -59,18 +66,24 @@ public class AIDeckView : MonoBehaviour
 
     public CardData DrawCard()
     {
-        if (aiDeckCards.Count == 0)
+        if (aiDeckData.Count == 0)
         {
             Debug.Log("frontDeck is empty - this is your lose condition trigger point");
             return null;
         }
 
-        int topIndex = aiDeckCards.Count - 1;
-        CardView topCardView = aiDeckCards[topIndex];
-        CardData drawnCard = topCardView.GetCurrentCardData();
+        int topIndex = aiDeckData.Count - 1;
 
-        aiDeckCards.RemoveAt(topIndex);
-        Destroy(topCardView.gameObject);
+        CardData drawnCard = aiDeckData[topIndex];
+        aiDeckData.RemoveAt(topIndex);
+
+        CardView topCardView = aiDeckView[topIndex];
+        aiDeckView.RemoveAt(topIndex);
+
+        if (topCardView != null)
+        {
+            Destroy(topCardView.gameObject);
+        }
 
         RepositionStack();
 
@@ -85,23 +98,34 @@ public class AIDeckView : MonoBehaviour
         return newCard;
     }
 
+    public void PrepareDrawnCard(CardView cardView, CardData cardData)
+    {
+        if (cardView == null || cardData == null)
+        {
+            Debug.LogWarning("Cannot prepare a null card view or card data.");
+            return;
+        }
+
+        cardView.SetCardFront(cardData.cardFrontSprite);
+    }
+
     private void ClearDeck()
     {
-        foreach (CardView card in aiDeckCards)
+        foreach (CardView card in aiDeckView)
         {
             if (card != null) Destroy(card.gameObject);
         }
-        aiDeckCards.Clear();
+        aiDeckView.Clear();
     }
 
     private void RepositionStack()
     {
         int visibleLayerCount = Mathf.Max(1, maxVisibleLayers);
 
-        for (int i = 0; i < aiDeckCards.Count; i++)
+        for (int i = 0; i < aiDeckView.Count; i++)
         {
-            RectTransform rt = aiDeckCards[i].GetComponent<RectTransform>();
-            int layer = Mathf.Min(aiDeckCards.Count - 1 - i, visibleLayerCount - 1);
+            RectTransform rt = aiDeckView[i].GetComponent<RectTransform>();
+            int layer = Mathf.Min(aiDeckView.Count - 1 - i, visibleLayerCount - 1);
             rt.anchoredPosition = stackOffset * layer;
             rt.SetSiblingIndex(i);
         }

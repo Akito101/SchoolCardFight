@@ -23,9 +23,7 @@ public class BoardDeckView : MonoBehaviour
         boardCardDeck.Clear();
         foreach (var card in activeBoardCardViews)
         {
-
             if (card != null) Destroy(card.gameObject);
-
         }
         activeBoardCardViews.Clear();
     }

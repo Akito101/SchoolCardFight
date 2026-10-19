@@ -13,7 +13,7 @@ public class CardView : MonoBehaviour
 
     private RectTransform currentCardTransform;
     private Vector2 playerDeckPosition;
-    private CardData currentCard;
+    // private CardData currentCard;
 
     void Awake()
     {
@@ -33,55 +33,43 @@ public class CardView : MonoBehaviour
         currentCardTransform.anchoredPosition = position;
     }
 
-    public CardView CreateNextDrawCard()
+    public void SetCardFront(Sprite frontSprite)
     {
-        CardView nextCard = Instantiate(this, transform.parent);
-        nextCard.playerDeckPosition = playerDeckPosition;
-        nextCard.currentCardTransform.anchoredPosition = playerDeckPosition;
-        nextCard.currentCardTransform.localRotation = Quaternion.identity;
-        return nextCard;
-    }
-
-    public CardData GetCurrentCardData()
-    {
-        return currentCard;
-    }
-
-    public void Setup(CardData data)
-    {
-        if (data == null)
+        if (frontSprite == null)
         {
             gameObject.SetActive(false);
             return;
         }
 
         gameObject.SetActive(true);
-        currentCard = data;
-        currentCardTransform.anchoredPosition = playerDeckPosition;
         currentCardTransform.localScale = Vector3.one;
         currentCardTransform.localRotation = Quaternion.identity;
 
-        if (frontSideImage != null && currentCard.cardFrontSprite != null)
+        if (frontSideImage != null)
         {
-            frontSideImage.sprite = currentCard.cardFrontSprite;
+            frontSideImage.sprite = frontSprite;
         }
 
         ShowFaceDown();
     }
 
-    private void ShowFaceDown()
+    public void ShowFaceDown()
     {
         if (backSideImage != null) backSideImage.gameObject.SetActive(true);
         if (frontSideImage != null) frontSideImage.gameObject.SetActive(false);
     }
 
-    private void ShowFaceUp()
+    public void ShowFaceUp()
     {
         if (backSideImage != null) backSideImage.gameObject.SetActive(false);
         if (frontSideImage != null) frontSideImage.gameObject.SetActive(true);
     }
 
-    public void DrawCardAnimation(Vector2 cardDestination, float cardRotation, float targetScale, Action onComplete)
+    public void DrawCardAnimation(
+        Vector2 cardDestination,
+        float cardRotation,
+        float targetScale,
+        Action onComplete)
     {
         currentCardTransform.DOKill(); // stop any previous animation on this object
 

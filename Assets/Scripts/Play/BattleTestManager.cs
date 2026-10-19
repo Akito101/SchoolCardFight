@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using DG.Tweening;
 
 public class BattleTestManager : MonoBehaviour
 {
@@ -29,25 +30,25 @@ public class BattleTestManager : MonoBehaviour
         playerCCView = playerDeckView.SpawnCard();
         aiCCView = aiDeckView.SpawnCard();
 
-        SetSwipe(aiCCView, false);
         SetSwipe(playerCCView, true);
+        SetSwipe(aiCCView, false);
     }
 
     public void DrawNextCard()
     {
         if (currentTurn != Turn.Player || isBusy) return;
 
-        CardData drawnCard = playerDeckView.DrawCard();
-        if (drawnCard == null) return;
+        CardData drawPLayerCard = playerDeckView.DrawCard();
+        if (drawPLayerCard == null) return;
 
         isBusy = true;
         SetSwipe(playerCCView, false);
 
-        playerCCView.Setup(drawnCard);
-        boardDeckView.AddCardToBoardDeck(drawnCard, playerCCView, FinishPlayerTurn);
+        playerDeckView.PrepareDrawnCard(playerCCView, drawPLayerCard);
+        boardDeckView.AddCardToBoardDeck(drawPLayerCard, playerCCView, FinishPlayerTurn);
         if (playerDeckView.HasCardsRemaining)
         {
-            playerCCView = playerCCView.CreateNextDrawCard();
+            playerCCView = playerDeckView.SpawnCard();
         }
 
         return;
@@ -59,37 +60,42 @@ public class BattleTestManager : MonoBehaviour
         {
             if (isMatch)
             {
+                currentTurn = Turn.Player;
                 isBusy = false;
                 SetSwipe(playerCCView, true);
-                currentTurn = Turn.Player;
             }
             else
             {
                 currentTurn = Turn.AI;
-                DrawAICard();
+                DOVirtual.DelayedCall(0.3f, () =>
+                {
+                    DrawAICard();
+                });
             }
         });
     }
 
     private void DrawAICard()
     {
-        CardData drawnCard = aiDeckView.DrawCard();
-        if (drawnCard == null)
+        CardData drawAICard = aiDeckView.DrawCard();
+        if (drawAICard == null)
         {
             currentTurn = Turn.Player;
             isBusy = false;
+
             if (playerDeckView.HasCardsRemaining)
             {
                 SetSwipe(playerCCView, true);
             }
+
             return;
         }
 
-        aiCCView.Setup(drawnCard);
-        boardDeckView.AddCardToBoardDeck(drawnCard, aiCCView, FinishAITurn);
+        aiDeckView.PrepareDrawnCard(aiCCView, drawAICard);
+        boardDeckView.AddCardToBoardDeck(drawAICard, aiCCView, FinishAITurn);
         if (aiDeckView.HasCardsRemaining)
         {
-            aiCCView = aiCCView.CreateNextDrawCard();
+            aiCCView = aiDeckView.SpawnCard();
         }
     }
 
@@ -99,12 +105,13 @@ public class BattleTestManager : MonoBehaviour
          {
              if (isMatch)
              {
-
-                 DrawAICard();
+                 DOVirtual.DelayedCall(0.4f, () =>
+                {
+                    DrawAICard();
+                });
              }
              else
              {
-
                  currentTurn = Turn.Player;
                  isBusy = false;
                  if (playerDeckView.HasCardsRemaining)
@@ -132,8 +139,7 @@ public class BattleTestManager : MonoBehaviour
             isBusy = true;
             SetSwipe(playerCCView, false);
 
-            RectTransform winnerDeckTransform = isPlayerWinner ? playerDeckView.GetComponent<RectTransform>()
-                                                           : aiDeckView.GetComponent<RectTransform>();
+            RectTransform winnerDeckTransform = isPlayerWinner ? playerDeckView.GetComponent<RectTransform>() : aiDeckView.GetComponent<RectTransform>();
             Vector2 targetDeckPos = winnerDeckTransform.anchoredPosition;
 
             boardDeckView.AddBoardDeckToWinnerDeck(
@@ -149,13 +155,26 @@ public class BattleTestManager : MonoBehaviour
                 {
                     aiDeckView.BuildDeck(boardCards, null);
                 }
+
+                // 2. Check the loser's deck count to determine if the match is over
+                int loserCardCount = isPlayerWinner ? aiDeckView.GetCardCount() : playerDeckView.GetCardCount();
+
+                if (loserCardCount <= 4)
+                {
+                    string realWinner = isPlayerWinner ? "Player" : "AI";
+                    Debug.Log($"Match Over! Loser dropped to {loserCardCount} cards. 🏆 {realWinner} wins the match!");
+
+                    isBusy = true;
+                    SetSwipe(playerCCView, false);
+                    return;
+                }
+
                 onMatchResolved(true);
             });
+            return;
         }
-        else
-        {
-            onMatchResolved(false);
-        }
+
+        onMatchResolved(false);
     }
 
     private void SetSwipe(CardView card, bool enable)
@@ -166,6 +185,5 @@ public class BattleTestManager : MonoBehaviour
             swipe.enabled = enable;
             if (enable) swipe.battleTestManager = this;
         }
-
     }
 }
