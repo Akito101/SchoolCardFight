@@ -9,13 +9,8 @@ public class PlayerDeckView : MonoBehaviour
     private readonly List<CardView> playerDeckCards = new List<CardView>();
 
     private RectTransform playerDeckTransform;
-    private Vector2 stackOffset = new Vector2(12f, 0f);
+    private Vector2 stackOffset = new Vector2(8f, 0f);
     private int maxVisibleLayers = 4;
-
-    public bool HasCardsRemaining
-    {
-        get { return playerDeckData.Count > 4; }
-    }
 
     public int GetCardCount()
     {
@@ -27,16 +22,29 @@ public class PlayerDeckView : MonoBehaviour
         playerDeckTransform = GetComponent<RectTransform>();
     }
 
-    public void BuildDeck(List<CardData> baseCards, CardData artifactCard)
+    public void BuildDeck(List<CardData> initialDeck, CardData artifactCard)
     {
         ClearDeck();
 
-        // Front Deck
-        playerDeckData.AddRange(baseCards);
+
+        playerDeckData.AddRange(initialDeck);
         ShuffleDeck(playerDeckData);
         InsertArtifactEarly(playerDeckData, artifactCard);
 
-        // Back Deck
+        RebuildDeckViews();
+    }
+
+    public void AddCardsAndReshuffle(List<CardData> winedDeck)
+    {
+        if (winedDeck == null || winedDeck.Count == 0) return;
+
+        playerDeckData.AddRange(winedDeck);
+        ShuffleDeck(playerDeckData);
+        RebuildDeckViews();
+    }
+
+    private void RebuildDeckViews()
+    {
         foreach (CardData data in playerDeckData)
         {
             CardView newCard = Instantiate(cardPrefab, playerDeckTransform);
@@ -116,6 +124,7 @@ public class PlayerDeckView : MonoBehaviour
             if (card != null) Destroy(card.gameObject);
         }
         playerDeckCards.Clear();
+        playerDeckData.Clear();
     }
 
     private void RepositionStack()

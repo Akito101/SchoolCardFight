@@ -12,8 +12,6 @@ public class CardView : MonoBehaviour
     [SerializeField] private Sprite cardBackSprite;
 
     private RectTransform currentCardTransform;
-    private Vector2 playerDeckPosition;
-    // private CardData currentCard;
 
     void Awake()
     {
@@ -29,7 +27,6 @@ public class CardView : MonoBehaviour
 
     public void SetOriginalPosition(Vector2 position)
     {
-        playerDeckPosition = position;
         currentCardTransform.anchoredPosition = position;
     }
 

@@ -9,13 +9,8 @@ public class AIDeckView : MonoBehaviour
     private readonly List<CardView> aiDeckView = new List<CardView>();
 
     private RectTransform aiDeckTransform;
-    private Vector2 stackOffset = new Vector2(-12f, 0f);
+    private Vector2 stackOffset = new Vector2(-8f, 0f);
     private int maxVisibleLayers = 4;
-
-    public bool HasCardsRemaining
-    {
-        get { return aiDeckData.Count > 4; }
-    }
 
     public int GetCardCount()
     {
@@ -27,16 +22,28 @@ public class AIDeckView : MonoBehaviour
         aiDeckTransform = GetComponent<RectTransform>();
     }
 
-    public void BuildDeck(List<CardData> baseCards, CardData artifactCard)
+    public void BuildDeck(List<CardData> initialDeck, CardData artifactCard)
     {
         ClearDeck();
 
-        // Front Deck
-        aiDeckData.AddRange(baseCards);
+        aiDeckData.AddRange(initialDeck);
         ShuffleDeck(aiDeckData);
         InsertArtifactEarly(aiDeckData, artifactCard);
 
-        // Back Deck
+        RebuildDeckViews();
+    }
+
+    public void AddCardsAndReshuffle(List<CardData> winedDeck)
+    {
+        if (winedDeck == null || winedDeck.Count == 0) return;
+
+        aiDeckData.AddRange(winedDeck);
+        ShuffleDeck(aiDeckData);
+        RebuildDeckViews();
+    }
+
+    private void RebuildDeckViews()
+    {
         foreach (CardData data in aiDeckData)
         {
             CardView newCard = Instantiate(cardPrefab, aiDeckTransform);
@@ -116,6 +123,7 @@ public class AIDeckView : MonoBehaviour
             if (card != null) Destroy(card.gameObject);
         }
         aiDeckView.Clear();
+        aiDeckData.Clear();
     }
 
     private void RepositionStack()

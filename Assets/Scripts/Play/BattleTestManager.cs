@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using DG.Tweening;
+using System;
 
 public class BattleTestManager : MonoBehaviour
 {
@@ -39,14 +40,29 @@ public class BattleTestManager : MonoBehaviour
         if (currentTurn != Turn.Player || isBusy) return;
 
         CardData drawPLayerCard = playerDeckView.DrawCard();
-        if (drawPLayerCard == null) return;
+
+        if (drawPLayerCard == null)
+        {
+            isBusy = true;
+
+            ReturnBoardCardsToOwnerDecks(() =>
+            {
+                currentTurn = Turn.AI;
+                isBusy = false;
+                DrawAICard();
+            });
+
+            return;
+        }
 
         isBusy = true;
         SetSwipe(playerCCView, false);
 
         playerDeckView.PrepareDrawnCard(playerCCView, drawPLayerCard);
-        boardDeckView.AddCardToBoardDeck(drawPLayerCard, playerCCView, FinishPlayerTurn);
-        if (playerDeckView.HasCardsRemaining)
+        boardDeckView.AddCardToBoardDeck(drawPLayerCard, playerCCView, BoardCardOwner.Player,
+        FinishPlayerTurn);
+
+        if (playerDeckView.GetCardCount() > 0)
         {
             playerCCView = playerDeckView.SpawnCard();
         }
@@ -78,22 +94,29 @@ public class BattleTestManager : MonoBehaviour
     private void DrawAICard()
     {
         CardData drawAICard = aiDeckView.DrawCard();
+
         if (drawAICard == null)
         {
-            currentTurn = Turn.Player;
-            isBusy = false;
+            isBusy = true;
 
-            if (playerDeckView.HasCardsRemaining)
+            ReturnBoardCardsToOwnerDecks(() =>
             {
-                SetSwipe(playerCCView, true);
-            }
+                currentTurn = Turn.Player;
+                isBusy = false;
+
+                if (playerDeckView.GetCardCount() > 0)
+                {
+                    SetSwipe(playerCCView, true);
+                }
+            });
 
             return;
         }
 
         aiDeckView.PrepareDrawnCard(aiCCView, drawAICard);
-        boardDeckView.AddCardToBoardDeck(drawAICard, aiCCView, FinishAITurn);
-        if (aiDeckView.HasCardsRemaining)
+        boardDeckView.AddCardToBoardDeck(drawAICard, aiCCView, BoardCardOwner.AI, FinishAITurn);
+
+        if (aiDeckView.GetCardCount() > 0)
         {
             aiCCView = aiDeckView.SpawnCard();
         }
@@ -114,7 +137,7 @@ public class BattleTestManager : MonoBehaviour
              {
                  currentTurn = Turn.Player;
                  isBusy = false;
-                 if (playerDeckView.HasCardsRemaining)
+                 if (playerDeckView.GetCardCount() > 0)
                  {
                      SetSwipe(playerCCView, true);
                  }
@@ -146,14 +169,14 @@ public class BattleTestManager : MonoBehaviour
             targetDeckPos,
             boardCards =>
             {
-                // 1. Rebuild the winner's deck with the won cards
+                // 1. Add the won cards to the winner's remaining deck and reshuffle it.
                 if (isPlayerWinner)
                 {
-                    playerDeckView.BuildDeck(boardCards, null);
+                    playerDeckView.AddCardsAndReshuffle(boardCards);
                 }
                 else
                 {
-                    aiDeckView.BuildDeck(boardCards, null);
+                    aiDeckView.AddCardsAndReshuffle(boardCards);
                 }
 
                 // 2. Check the loser's deck count to determine if the match is over
@@ -175,6 +198,27 @@ public class BattleTestManager : MonoBehaviour
         }
 
         onMatchResolved(false);
+    }
+
+    private void ReturnBoardCardsToOwnerDecks(Action onComplete)
+    {
+        Vector2 playerDeckPosition =
+            playerDeckView.GetComponent<RectTransform>().anchoredPosition;
+
+        Vector2 aiDeckPosition =
+            aiDeckView.GetComponent<RectTransform>().anchoredPosition;
+
+        boardDeckView.ReturnBoardCardsToOwnerDecks(
+            playerDeckPosition,
+            aiDeckPosition,
+            (playerCards, aiCards) =>
+            {
+                playerDeckView.AddCardsAndReshuffle(playerCards);
+                aiDeckView.AddCardsAndReshuffle(aiCards);
+
+                onComplete?.Invoke();
+            }
+        );
     }
 
     private void SetSwipe(CardView card, bool enable)

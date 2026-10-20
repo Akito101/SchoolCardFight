@@ -3,10 +3,17 @@ using System.Collections.Generic;
 using DG.Tweening;
 using System;
 
+public enum BoardCardOwner
+{
+    Player,
+    AI
+}
+
 public class BoardDeckView : MonoBehaviour
 {
-    [SerializeField] private List<CardData> boardCardDeck = new List<CardData>();
-    private List<CardView> activeBoardCardViews = new List<CardView>();
+    private readonly List<CardData> boardCardDeck = new List<CardData>();
+    private readonly List<BoardCardOwner> boardCardOwners = new List<BoardCardOwner>();
+    private readonly List<CardView> activeBoardCardViews = new List<CardView>();
     private Vector2 positionJitter = new Vector2(18f, 12f);
     private float maximumRotation = 15f;
     private RectTransform boardTransform;
@@ -21,14 +28,17 @@ public class BoardDeckView : MonoBehaviour
     public void ClearBoard()
     {
         boardCardDeck.Clear();
+        boardCardOwners.Clear();
+
         foreach (var card in activeBoardCardViews)
         {
             if (card != null) Destroy(card.gameObject);
         }
+
         activeBoardCardViews.Clear();
     }
 
-    public void AddCardToBoardDeck(CardData cardData, CardView cardView, Action onAnimationComplete)
+    public void AddCardToBoardDeck(CardData cardData, CardView cardView, BoardCardOwner owner, Action onAnimationComplete)
     {
         if (cardData == null || cardView == null)
         {
@@ -37,6 +47,7 @@ public class BoardDeckView : MonoBehaviour
         }
 
         boardCardDeck.Add(cardData);
+        boardCardOwners.Add(owner);
         activeBoardCardViews.Add(cardView);
         cardView.transform.SetAsLastSibling();
 
@@ -115,6 +126,76 @@ public class BoardDeckView : MonoBehaviour
         {
             ClearBoard();
             onComplete?.Invoke(wonCards);
+        });
+    }
+
+    public void ReturnBoardCardsToOwnerDecks(
+    Vector2 playerDeckPosition,
+    Vector2 aiDeckPosition,
+    Action<List<CardData>, List<CardData>> onComplete)
+    {
+        List<CardData> playerCards = new List<CardData>();
+        List<CardData> aiCards = new List<CardData>();
+
+        Sequence returnSequence = DOTween.Sequence();
+
+        for (int i = 0; i < boardCardDeck.Count; i++)
+        {
+            CardData cardData = boardCardDeck[i];
+            BoardCardOwner owner = boardCardOwners[i];
+
+            if (owner == BoardCardOwner.Player)
+            {
+                playerCards.Add(cardData);
+            }
+            else
+            {
+                aiCards.Add(cardData);
+            }
+
+            if (i >= activeBoardCardViews.Count)
+            {
+                continue;
+            }
+
+            CardView cardView = activeBoardCardViews[i];
+
+            if (cardView == null)
+            {
+                continue;
+            }
+
+            Vector2 targetPosition = owner == BoardCardOwner.Player
+                ? playerDeckPosition
+                : aiDeckPosition;
+
+            RectTransform cardTransform = cardView.GetComponent<RectTransform>();
+
+            cardTransform.DOKill();
+
+            returnSequence.Join(
+                cardTransform
+                    .DOAnchorPos(targetPosition, 0.45f)
+                    .SetEase(Ease.InBack)
+            );
+
+            returnSequence.Join(
+                cardTransform
+                    .DORotate(Vector3.zero, 0.45f)
+                    .SetEase(Ease.OutQuad)
+            );
+
+            returnSequence.Join(
+                cardTransform
+                    .DOScale(Vector3.one, 0.45f)
+                    .SetEase(Ease.OutQuad)
+            );
+        }
+
+        returnSequence.OnComplete(() =>
+        {
+            ClearBoard();
+            onComplete?.Invoke(playerCards, aiCards);
         });
     }
 }
