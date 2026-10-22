@@ -9,47 +9,72 @@ public class PackOpener : MonoBehaviour
 {
     [Header("Data")]
     public CardDatabase database;
-    public int totalPacks = 3;
+    public int starterPacks = 3;
     public int cardsPerPack = 5;
-    public string nextScene = "TestGamePlay";
+    public string battleScene = "TestGamePlay";   // where to go after the very first packs
+    public string mapScene = "Map";               // where to go after opening shop packs
 
     [Header("UI")]
     public Button packButton;
     public Button nextPackButton;
     public Button continueButton;
+    public TextMeshProUGUI continueButtonText;
+    public Button backButton;
     public TextMeshProUGUI packsLeftText;
     public Transform cardsParent;
     public CardSlotView cardSlotPrefab;
 
-    private int packsOpened = 0;
+    private bool firstTime;
+    private int openedThisVisit = 0;
 
     void Start()
     {
-        if (PlayerPrefs.GetInt("StarterPacksOpened", 0) == 1)
+        firstTime = PlayerPrefs.GetInt("StarterPacksOpened", 0) == 0;
+
+        // The first time ever, give the player their 3 starter packs (only once)
+        if (firstTime && PlayerPrefs.GetInt("StarterPacksGranted", 0) == 0)
         {
-            SceneManager.LoadScene(nextScene);
-            return;
+            PlayerPacks.Add(starterPacks);
+            PlayerPrefs.SetInt("StarterPacksGranted", 1);
+            PlayerPrefs.Save();
         }
 
-        packButton.gameObject.SetActive(true);
+        ShowIdle();
+    }
+
+    // The pack is waiting to be ripped
+    private void ShowIdle()
+    {
+        ClearCards();
         nextPackButton.gameObject.SetActive(false);
-        continueButton.gameObject.SetActive(false);
+
+        bool hasPacks = PlayerPacks.Count > 0;
+        packButton.gameObject.SetActive(hasPacks);
+        backButton.gameObject.SetActive(!firstTime && hasPacks);
+
+        continueButton.gameObject.SetActive(!hasPacks);
+        continueButtonText.text = firstTime ? "Start Battle" : "Back";
+
         UpdateText();
     }
 
     // PackButton's OnClick
     public void OnPackPressed()
     {
-        if (packsOpened >= totalPacks) return;
+        if (PlayerPacks.Count <= 0) return;
 
-        List<CardData> pulled = RollPack(packsOpened == 0);
-        if (pulled.Count == 0) return; // something is wrong, the error shows in the Console
+        // the very first starter pack always has one card of each category
+        List<CardData> pulled = PackRoller.Roll(database, cardsPerPack, firstTime && openedThisVisit == 0);
+        if (pulled.Count == 0) return;   // something is misconfigured, the error shows in the Console
+
+        PlayerPacks.Use();
+        openedThisVisit++;
 
         ClearCards();
-        packButton.gameObject.SetActive(false); // hide the pack so it can't cover the cards
+        packButton.gameObject.SetActive(false);
+        backButton.gameObject.SetActive(false);
 
         pulled.Sort((a, b) => a.category.CompareTo(b.category));
-
         for (int i = 0; i < pulled.Count; i++)
         {
             PlayerCollection.AddCard(pulled[i].cardName);
@@ -57,39 +82,49 @@ public class PackOpener : MonoBehaviour
             slot.Setup(pulled[i], i * 0.15f);
         }
 
-        packsOpened++;
         UpdateText();
-
-        if (packsOpened >= totalPacks)
-        {
-            PlayerPrefs.SetInt("StarterPacksOpened", 1);
-            PlayerPrefs.Save();
-        }
-
-        StartCoroutine(ShowButtonAfterReveal(pulled.Count));
+        StartCoroutine(ShowButtonsAfterReveal(pulled.Count));
     }
 
     // NextPackButton's OnClick
     public void OnNextPackPressed()
     {
-        ClearCards();
-        nextPackButton.gameObject.SetActive(false);
-        packButton.gameObject.SetActive(true);
+        ShowIdle();
     }
 
     // ContinueButton's OnClick
     public void OnContinuePressed()
     {
-        SceneManager.LoadScene(nextScene);
+        if (firstTime)
+        {
+            PlayerPrefs.SetInt("StarterPacksOpened", 1);
+            PlayerPrefs.Save();
+            SceneManager.LoadScene(battleScene);
+        }
+        else
+        {
+            SceneManager.LoadScene(mapScene);
+        }
     }
 
-    private IEnumerator ShowButtonAfterReveal(int cardCount)
+    // BackButton's OnClick (only shown for packs bought in the shop)
+    public void OnBackPressed()
     {
-        // wait until all cards have finished popping in
+        SceneManager.LoadScene(mapScene);
+    }
+
+    private IEnumerator ShowButtonsAfterReveal(int cardCount)
+    {
+        // wait until the last card has finished popping in
         yield return new WaitForSeconds(cardCount * 0.15f + 0.5f);
 
-        if (packsOpened >= totalPacks) continueButton.gameObject.SetActive(true);
-        else nextPackButton.gameObject.SetActive(true);
+        int left = PlayerPacks.Count;
+        nextPackButton.gameObject.SetActive(left > 0);
+
+        // On the first visit the player must open all starter packs before the battle
+        bool showContinue = left == 0 || !firstTime;
+        continueButton.gameObject.SetActive(showContinue);
+        continueButtonText.text = firstTime ? "Start Battle" : "Done";
     }
 
     private void ClearCards()
@@ -101,51 +136,8 @@ public class PackOpener : MonoBehaviour
         }
     }
 
-    private List<CardData> RollPack(bool guaranteeEachCategory)
-    {
-        List<CardData> result = new List<CardData>();
-
-        if (database == null)
-        {
-            Debug.LogError("PackOpener: Database slot is empty! Drag the CardDatabase asset in.");
-            return result;
-        }
-
-        List<CardData> pool = new List<CardData>();
-        foreach (CardData c in database.allCards)
-        {
-            if (c == null) continue;
-            if (!c.isArtifact) pool.Add(c);
-        }
-
-        if (pool.Count == 0)
-        {
-            Debug.LogError("PackOpener: no cards found in the database!");
-            return result;
-        }
-
-        if (guaranteeEachCategory)
-        {
-            foreach (CardCategory cat in System.Enum.GetValues(typeof(CardCategory)))
-            {
-                List<CardData> ofCategory = pool.FindAll(c => c.category == cat);
-                if (ofCategory.Count > 0 && result.Count < cardsPerPack)
-                {
-                    result.Add(ofCategory[Random.Range(0, ofCategory.Count)]);
-                }
-            }
-        }
-
-        while (result.Count < cardsPerPack && pool.Count > 0)
-        {
-            result.Add(pool[Random.Range(0, pool.Count)]);
-        }
-
-        return result;
-    }
-
     private void UpdateText()
     {
-        packsLeftText.text = $"Packs left: {totalPacks - packsOpened}";
+        packsLeftText.text = $"Packs left: {PlayerPacks.Count}";
     }
 }

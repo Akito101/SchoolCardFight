@@ -16,6 +16,7 @@ public class MapManager : MonoBehaviour
     public GameObject deckPanel;
     public GameObject shopPanel;
     public GameObject settingsPanel;
+    public GameObject minigamePanel;
     public GameObject messagePanel;
     public TextMeshProUGUI messageText;
 
@@ -84,14 +85,7 @@ public class MapManager : MonoBehaviour
 
     public void OnMinigamePressed()
     {
-        if (Application.CanStreamedLevelBeLoaded(minigameScene))
-        {
-            SceneManager.LoadScene(minigameScene);
-        }
-        else
-        {
-            ShowMessage("The minigame is coming soon!");
-        }
+        OpenPanel(minigamePanel);
     }
 
     public void OnMainMenuPressed() { SceneManager.LoadScene("MainMenu"); }
@@ -123,6 +117,7 @@ public class MapManager : MonoBehaviour
         shopPanel.SetActive(false);
         settingsPanel.SetActive(false);
         messagePanel.SetActive(false);
+        minigamePanel.SetActive(false);
     }
 
     private void ShowMessage(string text)
