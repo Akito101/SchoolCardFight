@@ -20,6 +20,13 @@ public class MemoryMatchGame : MonoBehaviour
     public Sprite cardBackSprite;
     public MemoryCardView cardPrefab;
 
+    [Header("How to play")]
+    public GameObject howToPanel;
+    public TextMeshProUGUI howToText;
+    public Button howToStartButton;
+    public Button helpButton;          // the small "?" button
+    public TextMeshProUGUI hintText;   // the line that stays on screen
+
     [Header("UI")]
     public Transform gridParent;
     public TextMeshProUGUI statusText;
@@ -41,11 +48,14 @@ public class MemoryMatchGame : MonoBehaviour
         leaveButton.onClick.AddListener(GoToMap);
         backToMapButton.onClick.AddListener(GoToMap);
         playAgainButton.onClick.AddListener(StartGame);
+        howToStartButton.onClick.AddListener(() => howToPanel.SetActive(false));
+        helpButton.onClick.AddListener(ShowHowToPlay);
     }
 
     void Start()
     {
         StartGame();
+        ShowHowToPlay();
     }
 
     private void StartGame()
@@ -104,6 +114,20 @@ public class MemoryMatchGame : MonoBehaviour
         }
 
         UpdateStatus();
+        hintText.text = $"Find all {pairCount} pairs to win {baseReward} coins!";
+    }
+
+    private void ShowHowToPlay()
+    {
+        string bonus = "";
+        if (bonusPerSavedMistake > 0)
+        {
+            int best = baseReward + mistakeBudget * bonusPerSavedMistake;
+            bonus = $"\nFewer mistakes means more coins (up to {best})!";
+        }
+
+        howToText.text = $"How to play\n\nFlip two cards at a time.\nFind all {pairCount} matching pairs to win {baseReward} coins!{bonus}";
+        howToPanel.SetActive(true);
     }
 
     private void OnCardClicked(MemoryCardView card)
