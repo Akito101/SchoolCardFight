@@ -106,30 +106,30 @@ public class BoardDeckView : MonoBehaviour
             CardView cardView = entry.cardView;
             if (cardView == null) continue;
 
-            RectTransform cardTransform = cardView.GetComponent<RectTransform>();
-            cardTransform.DOKill();
+            RectTransform cardTrans = cardView.GetComponent<RectTransform>();
+            cardTrans.DOKill();
 
             Sequence cardSeq = DOTween.Sequence();
             cardView.transform.SetAsLastSibling();
 
             // 1: Gather and straighten all cards into board's center
-            cardSeq.Join(cardTransform.DOAnchorPos(boardCenterPos, 0.3f).SetEase(Ease.OutQuad));
-            cardSeq.Join(cardTransform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutQuad));
-            cardSeq.Join(cardTransform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTrans.DOAnchorPos(boardCenterPos, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTrans.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTrans.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutQuad));
 
             // 2: Flip effect: Compress width to 0 (Edge-on)
-            cardSeq.Append(cardTransform.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
+            cardSeq.Append(cardTrans.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
             cardSeq.AppendCallback(() =>
             {
                 if (cardView != null) cardView.ShowFaceDown();
             });
-            cardSeq.Append(cardTransform.DOScaleX(1f, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Append(cardTrans.DOScaleX(1f, 0.3f).SetEase(Ease.OutQuad));
 
             // 3: Short pause for better visual effect
             cardSeq.AppendInterval(0.1f);
 
             // 4: Move deck to the winner's deck position
-            cardSeq.Append(cardTransform.DOAnchorPos(targetPosition, 0.45f).SetEase(Ease.InBack));
+            cardSeq.Append(cardTrans.DOAnchorPos(targetPosition, 0.45f).SetEase(Ease.InBack));
 
             returnSeq.Join(cardSeq);
         }
@@ -170,24 +170,24 @@ public class BoardDeckView : MonoBehaviour
                 ? playerDeckPosition
                 : aiDeckPosition;
 
-            RectTransform cardTransform = cardView.GetComponent<RectTransform>();
-            cardTransform.DOKill();
+            RectTransform cardTrans = cardView.GetComponent<RectTransform>();
+            cardTrans.DOKill();
 
             Sequence cardSeq = DOTween.Sequence();
             cardView.transform.SetAsLastSibling();
 
             // 1: Gather and straighten each decks into respective center positions 
-            cardSeq.Join(cardTransform.DOAnchorPos(boardCenterPos, 0.3f).SetEase(Ease.OutQuad));
-            cardSeq.Join(cardTransform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutQuad));
-            cardSeq.Join(cardTransform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTrans.DOAnchorPos(boardCenterPos, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTrans.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTrans.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutQuad));
 
             // 2: Flip effect: Compress width to 0 (Edge-on)
-            cardSeq.Append(cardTransform.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
+            cardSeq.Append(cardTrans.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
             cardSeq.AppendCallback(() => cardView.ShowFaceDown());
-            cardSeq.Append(cardTransform.DOScaleX(1f, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Append(cardTrans.DOScaleX(1f, 0.3f).SetEase(Ease.OutQuad));
 
             // 3: Move decks to the owner's deck position
-            cardSeq.Append(cardTransform.DOAnchorPos(targetPosition, 0.35f).SetEase(Ease.InBack));
+            cardSeq.Append(cardTrans.DOAnchorPos(targetPosition, 0.35f).SetEase(Ease.InBack));
 
             returnSeq.Join(cardSeq);
         }
@@ -198,4 +198,6 @@ public class BoardDeckView : MonoBehaviour
             onComplete?.Invoke(playerCards, aiCards);
         });
     }
+
+
 }

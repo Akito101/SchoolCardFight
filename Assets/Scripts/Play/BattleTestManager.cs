@@ -24,18 +24,40 @@ public class BattleTestManager : MonoBehaviour
     private bool aiHasCard = true;
     private bool isBusy;
     private Turn currentTurn = Turn.Player;
+    private int initialDeckAnimationsPending;
 
     private void Start()
     {
-        playerDeckView.BuildDeck(playerCards, null);
-        aiDeckView.BuildDeck(aiCards, null);
+        isBusy = true;
         boardDeckView.ClearBoard();
+
+        initialDeckAnimationsPending = 2;
+
+        playerDeckView.BuildDeck(
+            playerCards,
+            null,
+            OnInitialDeckAnimationComplete);
+
+        aiDeckView.BuildDeck(
+            aiCards,
+            null,
+            OnInitialDeckAnimationComplete);
+    }
+
+    private void OnInitialDeckAnimationComplete()
+    {
+        initialDeckAnimationsPending--;
+
+        if (initialDeckAnimationsPending > 0) return;
 
         playerCCView = playerDeckView.SpawnCard();
         playerHasCard = true;
 
         aiCCView = aiDeckView.SpawnCard();
         aiHasCard = true;
+
+        currentTurn = Turn.Player;
+        isBusy = false;
 
         SetSwipe(playerCCView, true);
         SetSwipe(aiCCView, false);
@@ -212,31 +234,42 @@ public class BattleTestManager : MonoBehaviour
             targetDeckPos,
             boardCards =>
             {
-                // 1. Add the won cards to the winner's remaining deck and reshuffle it.
+                // Check the loser's deck count to determine if the match is over
+                void FinishReshuffle()
+                {
+                    int loserCardCount = isPlayerWinner
+                        ? aiDeckView.GetCardCount()
+                        : playerDeckView.GetCardCount();
+
+                    if (loserCardCount <= 4)
+                    {
+                        string realWinner = isPlayerWinner ? "Player" : "AI";
+
+                        Debug.Log(
+                            $"Match Over! Loser dropped to {loserCardCount} cards. " +
+                            $"🏆 {realWinner} wins the match!");
+
+                        isBusy = true;
+                        SetSwipe(playerCCView, false);
+                        return;
+                    }
+
+                    onMatchResolved(true);
+                }
+
+                // Add the won cards to the winner's remaining deck and reshuffle it.
                 if (isPlayerWinner)
                 {
-                    playerDeckView.AddCardsAndReshuffle(boardCards);
+                    playerDeckView.AddCardsAndReshuffle(
+                    boardCards,
+                    FinishReshuffle);
                 }
                 else
                 {
-                    aiDeckView.AddCardsAndReshuffle(boardCards);
+                    aiDeckView.AddCardsAndReshuffle(
+                   boardCards,
+                   FinishReshuffle);
                 }
-
-                // 2. Check the loser's deck count to determine if the match is over
-                int loserCardCount = isPlayerWinner ? aiDeckView.GetCardCount() : playerDeckView.GetCardCount();
-
-                if (loserCardCount <= 4)
-                {
-                    string realWinner = isPlayerWinner ? "Player" : "AI";
-                    Debug.Log($"Match Over! Loser dropped to {loserCardCount} cards. 🏆 {realWinner} wins the match!");
-
-                    isBusy = true;
-                    SetSwipe(playerCCView, false);
-                    // TODO: Connect with WIN/LOSE UI here 
-                    return;
-                }
-
-                onMatchResolved(true);
             });
             return;
         }
@@ -257,10 +290,27 @@ public class BattleTestManager : MonoBehaviour
             aiDeckPosition,
             (playerCards, aiCards) =>
             {
-                playerDeckView.AddCardsAndReshuffle(playerCards);
-                aiDeckView.AddCardsAndReshuffle(aiCards);
+                int reshufflesPending = 2;
 
-                onComplete?.Invoke();
+                void FinishReshuffle()
+                {
+                    reshufflesPending--;
+
+                    if (reshufflesPending == 0)
+                    {
+                        onComplete?.Invoke();
+                    }
+                }
+
+                playerDeckView.AddCardsAndReshuffle(
+                playerCards,
+                FinishReshuffle);
+
+                aiDeckView.AddCardsAndReshuffle(
+                aiCards,
+                FinishReshuffle);
+
+
             }
         );
     }

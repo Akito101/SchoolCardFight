@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using DG.Tweening;
 
 public class AIDeckView : MonoBehaviour
 {
@@ -22,7 +23,7 @@ public class AIDeckView : MonoBehaviour
         aiDeckTransform = GetComponent<RectTransform>();
     }
 
-    public void BuildDeck(List<CardData> initialDeck, CardData artifactCard)
+    public void BuildDeck(List<CardData> initialDeck, CardData artifactCard, System.Action onAnimationComplete = null)
     {
         ClearDeck();
 
@@ -30,19 +31,24 @@ public class AIDeckView : MonoBehaviour
         ShuffleDeck(aiDeckData);
         InsertArtifactEarly(aiDeckData, artifactCard);
 
-        RebuildDeckViews();
+        RebuildDeckViews(onAnimationComplete);
     }
 
-    public void AddCardsAndReshuffle(List<CardData> winedDeck)
+    public void AddCardsAndReshuffle(List<CardData> winedDeck, System.Action onAnimationComplete = null)
     {
-        if (winedDeck == null || winedDeck.Count == 0) return;
+        if (winedDeck == null || winedDeck.Count == 0)
+        {
+            onAnimationComplete?.Invoke();
+            return;
+        }
 
         aiDeckData.AddRange(winedDeck);
         ShuffleDeck(aiDeckData);
-        RebuildDeckViews();
+
+        RebuildDeckViews(onAnimationComplete);
     }
 
-    private void RebuildDeckViews()
+    private void RebuildDeckViews(System.Action onAnimationComplete)
     {
         foreach (CardData data in aiDeckData)
         {
@@ -50,7 +56,12 @@ public class AIDeckView : MonoBehaviour
             newCard.ShowFaceDown();
             aiDeckView.Add(newCard);
         }
-        RepositionStack();
+
+        OverhandDeckShuffleAnimation(aiDeckView, () =>
+        {
+            RepositionStack();
+            onAnimationComplete?.Invoke();
+        });
     }
 
     private void ShuffleDeck(List<CardData> list)
@@ -128,10 +139,92 @@ public class AIDeckView : MonoBehaviour
 
         for (int i = 0; i < aiDeckView.Count; i++)
         {
-            RectTransform rt = aiDeckView[i].GetComponent<RectTransform>();
+            RectTransform cardTrans = aiDeckView[i].GetComponent<RectTransform>();
             int layer = Mathf.Min(aiDeckView.Count - 1 - i, visibleLayerCount - 1);
-            rt.anchoredPosition = stackOffset * layer;
-            rt.SetSiblingIndex(i);
+
+            Vector2 targetPosition = stackOffset * layer;
+            cardTrans.DOKill();
+            cardTrans.DOAnchorPos(targetPosition, 0.2f).SetEase(Ease.OutQuad);
+            cardTrans.SetSiblingIndex(i);
         }
+    }
+
+    public void OverhandDeckShuffleAnimation(List<CardView> deckCardViews, System.Action onComplete)
+    {
+        if (deckCardViews == null || deckCardViews.Count < 4)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        Sequence seq = DOTween.Sequence();
+
+        // 1: Gather and straighten all cards into board's center
+        Sequence gatherSeq = DOTween.Sequence();
+        foreach (var cardView in deckCardViews)
+        {
+            if (cardView == null) continue;
+            RectTransform cardTrans = cardView.GetComponent<RectTransform>();
+            cardTrans.DOKill();
+            cardTrans.SetAsLastSibling();
+
+            gatherSeq.Join(cardTrans.DOAnchorPos(Vector3.zero, 0.25f).SetEase(Ease.OutQuad));
+            gatherSeq.Join(cardTrans.DORotate(Vector3.zero, 0.25f).SetEase(Ease.OutQuad));
+            gatherSeq.Join(cardTrans.DOScale(Vector3.one, 0.25f).SetEase(Ease.OutQuad));
+        }
+        seq.Append(gatherSeq);
+
+        // 2: Short pause for better visual effect
+        seq.AppendInterval(0.05f);
+
+        Sequence shuffleSeq = DOTween.Sequence();
+        int shuffleIterations = 3;
+
+        // 3: Overhand shuffle effect
+        for (int iter = 0; iter < shuffleIterations; iter++)
+        {
+            // 3.1: Pick a random chunk from the middle of the deck
+            int chunkSize = Random.Range(2, Mathf.Max(3, deckCardViews.Count / 2));
+            int startIndex = Random.Range(0, deckCardViews.Count - chunkSize);
+            int endIndex = startIndex + chunkSize;
+
+            Sequence iterationSeq = DOTween.Sequence();
+            List<RectTransform> movingCards = new List<RectTransform>();
+
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                if (deckCardViews[i] != null)
+                {
+                    RectTransform cardTrans = deckCardViews[i].GetComponent<RectTransform>();
+                    movingCards.Add(cardTrans);
+                }
+            }
+
+            if (movingCards.Count == 0) continue;
+
+            // 3.2: Pull down and return up vertically in a single loop per card
+            foreach (var cardTrans in movingCards)
+            {
+                Vector2 downPosition = new Vector2(0f, -100f);
+
+                Sequence cardMoveSeq = DOTween.Sequence();
+                cardMoveSeq.Append(cardTrans.DOAnchorPos(downPosition, 0.12f).SetEase(Ease.OutQuad));
+                cardMoveSeq.AppendCallback(() => cardTrans.SetAsLastSibling());
+                cardMoveSeq.Append(cardTrans.DOAnchorPos(Vector2.zero, 0.12f).SetEase(Ease.InQuad));
+
+                iterationSeq.Join(cardMoveSeq);
+            }
+
+            // 3.3: Short pause for better visual effect
+            iterationSeq.AppendInterval(0.05f);
+
+            shuffleSeq.Append(iterationSeq);
+        }
+        seq.Append(shuffleSeq);
+
+        seq.OnComplete(() =>
+        {
+            onComplete?.Invoke();
+        });
     }
 }
