@@ -16,6 +16,9 @@ public class BattleTestManager : MonoBehaviour
     [SerializeField] private AIDeckView aiDeckView;
     [SerializeField] private BoardDeckView boardDeckView;
 
+    [Header("UI References")]
+    [SerializeField] private SpellUIController spellUIController;
+
     [Header("Cards Settings")]
     [SerializeField] private List<CardData> playerCards;
     [SerializeField] private List<CardData> aiCards;
@@ -48,6 +51,11 @@ public class BattleTestManager : MonoBehaviour
             aiCards,
             aiArtifactEffect,
             OnInitialDeckAnimationComplete);
+
+        if (spellUIController != null)
+        {
+            spellUIController.UpdateSpellUI(playerArtifactEffect);
+        }
     }
 
     private void OnInitialDeckAnimationComplete()
