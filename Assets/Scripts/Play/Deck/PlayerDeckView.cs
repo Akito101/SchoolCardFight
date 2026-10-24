@@ -23,11 +23,11 @@ public class PlayerDeckView : MonoBehaviour
         playerDeckTransform = GetComponent<RectTransform>();
     }
 
-    public void BuildDeck(List<CardData> initialDeck, CardData artifactCard, System.Action onAnimationComplete = null)
+    public void BuildDeck(List<CardData> initialDeck, ArtifactEffect artifactType, System.Action onAnimationComplete = null)
     {
         ClearDeck();
         playerDeckData.AddRange(initialDeck);
-        InsertArtifactEarly(playerDeckData, artifactCard);
+        InsertArtifact(playerDeckData, artifactType);
 
         RebuildDeckViews(onAnimationComplete);
     }
@@ -72,12 +72,17 @@ public class PlayerDeckView : MonoBehaviour
         }
     }
 
-    private void InsertArtifactEarly(List<CardData> list, CardData artifactCard)
+    private void InsertArtifact(List<CardData> list, ArtifactEffect artifactType)
     {
-        if (artifactCard == null) return;
-        int maxPosition = Mathf.Max(1, list.Count / 2);
-        int insertPosition = Random.Range(0, maxPosition);
-        list.Insert(insertPosition, artifactCard);
+        if (list == null || list.Count == 0) return;
+
+        int randomIndex = Random.Range(0, list.Count);
+
+        CardData cardCopy = Instantiate(list[randomIndex]);
+        cardCopy.isArtifact = true;
+        cardCopy.artifactEffect = artifactType;
+
+        list[randomIndex] = cardCopy;
     }
 
     public CardData DrawCard()
@@ -119,6 +124,7 @@ public class PlayerDeckView : MonoBehaviour
         }
 
         currentCardView.SetCardFront(currentCardData.cardFrontSprite);
+        currentCardView.SetCardArtifact(currentCardData);
     }
 
     private void ClearDeck()

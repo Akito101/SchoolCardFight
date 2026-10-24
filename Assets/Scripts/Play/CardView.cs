@@ -7,9 +7,16 @@ using System;
 public class CardView : MonoBehaviour
 {
     [Header("UI References")]
+    [SerializeField] private GameObject frontSideRoot;
+    [SerializeField] private GameObject backSideRoot;
     [SerializeField] private Image frontSideImage;
     [SerializeField] private Image backSideImage;
     [SerializeField] private Sprite cardBackSprite;
+
+    [Header("Artifact Overlays")]
+    [SerializeField] private GameObject protectionOverlay;
+    [SerializeField] private GameObject reshuffleOverlay;
+    [SerializeField] private GameObject stealOverlay;
 
     private RectTransform currentCardTransform;
 
@@ -50,16 +57,39 @@ public class CardView : MonoBehaviour
         ShowFaceDown();
     }
 
+    public void SetCardArtifact(CardData cardData)
+    {
+        if (protectionOverlay) protectionOverlay.SetActive(false);
+        if (reshuffleOverlay) reshuffleOverlay.SetActive(false);
+        if (stealOverlay) stealOverlay.SetActive(false);
+
+        if (cardData.isArtifact)
+        {
+            switch (cardData.artifactEffect)
+            {
+                case ArtifactEffect.Protection:
+                    if (protectionOverlay) protectionOverlay.SetActive(true);
+                    break;
+                case ArtifactEffect.ReshuffleEnemyCard:
+                    if (reshuffleOverlay) reshuffleOverlay.SetActive(true);
+                    break;
+                case ArtifactEffect.StealCard:
+                    if (stealOverlay) stealOverlay.SetActive(true);
+                    break;
+            }
+        }
+    }
+
     public void ShowFaceDown()
     {
-        if (backSideImage != null) backSideImage.gameObject.SetActive(true);
-        if (frontSideImage != null) frontSideImage.gameObject.SetActive(false);
+        if (backSideRoot != null) backSideRoot.SetActive(true);
+        if (frontSideRoot != null) frontSideRoot.SetActive(false);
     }
 
     public void ShowFaceUp()
     {
-        if (backSideImage != null) backSideImage.gameObject.SetActive(false);
-        if (frontSideImage != null) frontSideImage.gameObject.SetActive(true);
+        if (backSideRoot != null) backSideRoot.SetActive(false);
+        if (frontSideRoot != null) frontSideRoot.SetActive(true);
     }
 
     public void DrawCardAnimation(

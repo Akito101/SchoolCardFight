@@ -12,5 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: legend1
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardFrontSprite: {fileID: 21300000, guid: ef05e54a21f024d768d35b729a4a4e26, type: 3}
+  cardName: Nga Tet Pyar
+  cardArt: {fileID: 21300000, guid: ef05e54a21f024d768d35b729a4a4e26, type: 3}
   category: 1
+  isArtifact: 0
+  artifactEffect: 0

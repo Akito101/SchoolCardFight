@@ -243,17 +243,29 @@ MonoBehaviour:
   aiDeckView: {fileID: 714466096}
   boardDeckView: {fileID: 1912832063}
   playerCards:
-  - {fileID: 11400000, guid: 890538bfe7e414b64a7a208655f22c40, type: 2}
-  - {fileID: 11400000, guid: 5c374e3ea72a14a429787140d28b047f, type: 2}
-  - {fileID: 11400000, guid: 1d115bfe1ad3c214a8b5f1effc6eef5a, type: 2}
-  - {fileID: 11400000, guid: b606844c6713ff543a6006f123df6e99, type: 2}
-  - {fileID: 11400000, guid: c35d5f3c3504f4133bcfd43b9f32299b, type: 2}
-  - {fileID: 11400000, guid: e96c2f74400454443a5268c73ec1840b, type: 2}
-  aiCards:
   - {fileID: 11400000, guid: b0517f0d6a61ae3418ba023a85fec250, type: 2}
   - {fileID: 11400000, guid: e1d474129e48c4d498bec34f066a27ce, type: 2}
+  - {fileID: 11400000, guid: 890538bfe7e414b64a7a208655f22c40, type: 2}
+  - {fileID: 11400000, guid: 5c374e3ea72a14a429787140d28b047f, type: 2}
+  - {fileID: 11400000, guid: c41bdd31edd6447059fe931bd7592418, type: 2}
+  - {fileID: 11400000, guid: 69f332c85d55343868b571cf1597b5ab, type: 2}
+  - {fileID: 11400000, guid: cba61462a63d5478bb6547d1c97d062f, type: 2}
+  - {fileID: 11400000, guid: 8cacea0bc73df4a3486b70de542caf7d, type: 2}
+  - {fileID: 11400000, guid: afd9cb3cbd2284e979f8f8b535e63ee4, type: 2}
+  - {fileID: 11400000, guid: e730a25d03d51ff419cf77dc5e59db59, type: 2}
+  aiCards:
   - {fileID: 11400000, guid: d601e7a88e62942faa7911b0c71ff237, type: 2}
   - {fileID: 11400000, guid: bb1002329ca7d4a3fb28f66d7afe553b, type: 2}
+  - {fileID: 11400000, guid: 1d115bfe1ad3c214a8b5f1effc6eef5a, type: 2}
+  - {fileID: 11400000, guid: b606844c6713ff543a6006f123df6e99, type: 2}
+  - {fileID: 11400000, guid: b6d005786d14d49f8984dbb6b34110a0, type: 2}
+  - {fileID: 11400000, guid: 01a903d9c32204c39a0a6a8ada3fc05e, type: 2}
+  - {fileID: 11400000, guid: 767cbbe99dacc4ca5a7ccb674dbe29de, type: 2}
+  - {fileID: 11400000, guid: 35e8dbcadad4c4607a9730805672b8b7, type: 2}
+  - {fileID: 11400000, guid: 368706ad41c9c2549bd6ab017f5e99e1, type: 2}
+  - {fileID: 11400000, guid: 3090626a9594e49e5ab20bbc86c718fc, type: 2}
+  playerArtifactEffect: 1
+  aiArtifactEffect: 2
 --- !u!114 &203046288
 MonoBehaviour:
   m_ObjectHideFlags: 0

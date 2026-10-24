@@ -15,8 +15,14 @@ public class BattleTestManager : MonoBehaviour
     [SerializeField] private PlayerDeckView playerDeckView;
     [SerializeField] private AIDeckView aiDeckView;
     [SerializeField] private BoardDeckView boardDeckView;
+
+    [Header("Cards Settings")]
     [SerializeField] private List<CardData> playerCards;
     [SerializeField] private List<CardData> aiCards;
+
+    [Header("Artifact Settings")]
+    [SerializeField] private ArtifactEffect playerArtifactEffect = ArtifactEffect.Protection;
+    [SerializeField] private ArtifactEffect aiArtifactEffect = ArtifactEffect.None;
 
     private CardView playerCCView; // player current card view
     private CardView aiCCView; // ai current card view
@@ -35,12 +41,12 @@ public class BattleTestManager : MonoBehaviour
 
         playerDeckView.BuildDeck(
             playerCards,
-            null,
+            playerArtifactEffect,
             OnInitialDeckAnimationComplete);
 
         aiDeckView.BuildDeck(
             aiCards,
-            null,
+            aiArtifactEffect,
             OnInitialDeckAnimationComplete);
     }
 

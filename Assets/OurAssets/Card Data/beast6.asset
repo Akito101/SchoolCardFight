@@ -12,5 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: beast6
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardFrontSprite: {fileID: 21300000, guid: 14904e86ca496417a8ae9fc8fb426ba7, type: 3}
+  cardName: Nwar
+  cardArt: {fileID: 21300000, guid: 14904e86ca496417a8ae9fc8fb426ba7, type: 3}
   category: 3
+  isArtifact: 0
+  artifactEffect: 0

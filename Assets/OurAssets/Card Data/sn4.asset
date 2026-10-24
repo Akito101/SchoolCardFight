@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: sn4
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: sn4
+  cardName: Preta
   cardArt: {fileID: 21300000, guid: 2f0521d12ff9f4efdb8d1f84f13f2933, type: 3}
   category: 2
   isArtifact: 0

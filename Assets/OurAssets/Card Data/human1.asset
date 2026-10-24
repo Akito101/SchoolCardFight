@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: human1
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardFrontSprite: {fileID: 21300000, guid: 0c4c0e2a19450455ba17b2812e44b2be, type: 3}
+  cardName: Ka Htein Ko Yin
+  cardArt: {fileID: 21300000, guid: 0c4c0e2a19450455ba17b2812e44b2be, type: 3}
   category: 4
   isArtifact: 0
   artifactEffect: 1
