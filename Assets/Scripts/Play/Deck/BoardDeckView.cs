@@ -11,14 +11,27 @@ public enum BoardCardOwner
 
 public class BoardDeckView : MonoBehaviour
 {
-    private readonly List<CardData> boardCardDeck = new List<CardData>();
-    private readonly List<BoardCardOwner> boardCardOwners = new List<BoardCardOwner>();
-    private readonly List<CardView> activeBoardCardViews = new List<CardView>();
+    private struct BoardCardEntry
+    {
+        public CardData cardData;
+        public BoardCardOwner owner;
+        public CardView cardView;
+    }
+
+    private readonly List<BoardCardEntry> boardEntries = new List<BoardCardEntry>();
+
     private Vector2 positionJitter = new Vector2(18f, 12f);
-    private float maximumRotation = 15f;
     private RectTransform boardTransform;
 
-    public List<CardData> GetBoardDeck() => new List<CardData>(boardCardDeck);
+    public List<CardData> GetBoardDeck()
+    {
+        List<CardData> deckCopy = new List<CardData>();
+        foreach (var entry in boardEntries)
+        {
+            deckCopy.Add(entry.cardData);
+        }
+        return deckCopy;
+    }
 
     private void Awake()
     {
@@ -27,15 +40,12 @@ public class BoardDeckView : MonoBehaviour
 
     public void ClearBoard()
     {
-        boardCardDeck.Clear();
-        boardCardOwners.Clear();
-
-        foreach (var card in activeBoardCardViews)
+        foreach (var entry in boardEntries)
         {
-            if (card != null) Destroy(card.gameObject);
+            if (entry.cardView != null) Destroy(entry.cardView.gameObject);
         }
 
-        activeBoardCardViews.Clear();
+        boardEntries.Clear();
     }
 
     public void AddCardToBoardDeck(CardData cardData, CardView cardView, BoardCardOwner owner, Action onAnimationComplete)
@@ -46,9 +56,13 @@ public class BoardDeckView : MonoBehaviour
             return;
         }
 
-        boardCardDeck.Add(cardData);
-        boardCardOwners.Add(owner);
-        activeBoardCardViews.Add(cardView);
+        boardEntries.Add(new BoardCardEntry
+        {
+            cardData = cardData,
+            owner = owner,
+            cardView = cardView
+        });
+
         cardView.transform.SetAsLastSibling();
 
         // 1. Calculate random card position on the board
@@ -69,57 +83,56 @@ public class BoardDeckView : MonoBehaviour
         float depthTilt = Mathf.Lerp(-6f, 6f, Mathf.Clamp01(normalizedY));
 
         // 3. Random rotation mixed with a slight perspective tilt
-        float cardRotation = UnityEngine.Random.Range(-maximumRotation, maximumRotation);
+        float cardRotation = UnityEngine.Random.Range(-15f, 15f);
 
         cardView.DrawCardAnimation(boardPosition, cardRotation, perspectiveScale, onAnimationComplete);
     }
 
     public void AddBoardDeckToWinnerDeck(Vector2 targetPosition, Action<List<CardData>> onComplete)
     {
-        if (activeBoardCardViews.Count == 0)
+        if (boardEntries.Count == 0)
         {
-            List<CardData> empty = new List<CardData>(boardCardDeck);
-            ClearBoard();
-            onComplete?.Invoke(empty);
+            onComplete?.Invoke(new List<CardData>());
             return;
         }
 
-        List<CardData> wonCards = new List<CardData>(boardCardDeck);
+        List<CardData> wonCards = GetBoardDeck();
+
         Sequence returnSeq = DOTween.Sequence();
+        Vector3 boardCenterPos = boardTransform.anchoredPosition;
 
-        // 1. Gather and straighten all cards into board's center
-        Sequence gatherSeq = DOTween.Sequence();
-        Vector3 boardCenterPos = boardTransform.position;
-
-        foreach (var cardView in activeBoardCardViews)
+        foreach (var entry in boardEntries)
         {
+            CardView cardView = entry.cardView;
             if (cardView == null) continue;
+
             RectTransform cardTransform = cardView.GetComponent<RectTransform>();
             cardTransform.DOKill();
 
-            // Bring cards to the front so they stack cleanly on top of each other
+            Sequence cardSeq = DOTween.Sequence();
             cardView.transform.SetAsLastSibling();
 
-            // Slide to center, reset rotation to straight (0), and reset scale
-            gatherSeq.Join(cardTransform.DOMove(boardCenterPos, 0.3f).SetEase(Ease.OutQuad));
-            gatherSeq.Join(cardTransform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutQuad));
-            gatherSeq.Join(cardTransform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutQuad));
+            // 1: Gather and straighten all cards into board's center
+            cardSeq.Join(cardTransform.DOAnchorPos(boardCenterPos, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTransform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTransform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutQuad));
+
+            // 2: Flip effect: Compress width to 0 (Edge-on)
+            cardSeq.Append(cardTransform.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
+            cardSeq.AppendCallback(() =>
+            {
+                if (cardView != null) cardView.ShowFaceDown();
+            });
+            cardSeq.Append(cardTransform.DOScaleX(1f, 0.3f).SetEase(Ease.OutQuad));
+
+            // 3: Short pause for better visual effect
+            cardSeq.AppendInterval(0.1f);
+
+            // 4: Move deck to the winner's deck position
+            cardSeq.Append(cardTransform.DOAnchorPos(targetPosition, 0.45f).SetEase(Ease.InBack));
+
+            returnSeq.Join(cardSeq);
         }
-        returnSeq.Append(gatherSeq);
-
-        // 2. Short pause for better visual effect
-        returnSeq.AppendInterval(0.1f);
-
-        // 3. Move the entire deck to the winner's deck position
-        Sequence moveSeq = DOTween.Sequence();
-        foreach (var cardView in activeBoardCardViews)
-        {
-            if (cardView == null) continue;
-            RectTransform cardTransform = cardView.GetComponent<RectTransform>();
-
-            moveSeq.Join(cardTransform.DOAnchorPos(targetPosition, 0.45f).SetEase(Ease.InBack));
-        }
-        returnSeq.Append(moveSeq);
 
         returnSeq.OnComplete(() =>
         {
@@ -137,53 +150,46 @@ public class BoardDeckView : MonoBehaviour
         List<CardData> aiCards = new List<CardData>();
 
         Sequence returnSeq = DOTween.Sequence();
+        Vector3 boardCenterPos = boardTransform.anchoredPosition;
 
-        for (int i = 0; i < boardCardDeck.Count; i++)
+        foreach (var entry in boardEntries)
         {
-            CardData cardData = boardCardDeck[i];
-            BoardCardOwner owner = boardCardOwners[i];
-
-            if (owner == BoardCardOwner.Player)
+            if (entry.owner == BoardCardOwner.Player)
             {
-                playerCards.Add(cardData);
+                playerCards.Add(entry.cardData);
             }
             else
             {
-                aiCards.Add(cardData);
+                aiCards.Add(entry.cardData);
             }
 
-            if (i >= activeBoardCardViews.Count)
-            {
-                continue;
-            }
-
-            CardView cardView = activeBoardCardViews[i];
+            CardView cardView = entry.cardView;
             if (cardView == null) continue;
 
-            Vector2 targetPosition = owner == BoardCardOwner.Player
+            Vector2 targetPosition = entry.owner == BoardCardOwner.Player
                 ? playerDeckPosition
                 : aiDeckPosition;
 
             RectTransform cardTransform = cardView.GetComponent<RectTransform>();
             cardTransform.DOKill();
 
-            Sequence rotateSeq = DOTween.Sequence();
-            Vector3 boardCenterPos = boardTransform.position;
+            Sequence cardSeq = DOTween.Sequence();
+            cardView.transform.SetAsLastSibling();
 
             // 1: Gather and straighten each decks into respective center positions 
-            rotateSeq.Join(cardTransform.DOMove(boardCenterPos, 0.3f).SetEase(Ease.OutQuad));
-            rotateSeq.Join(cardTransform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutQuad));
-            rotateSeq.Join(cardTransform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTransform.DOAnchorPos(boardCenterPos, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTransform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Join(cardTransform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutQuad));
 
             // 2: Flip effect: Compress width to 0 (Edge-on)
-            rotateSeq.Append(cardTransform.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
-            rotateSeq.AppendCallback(() => cardView.ShowFaceDown());
-            rotateSeq.Append(cardTransform.DOScaleX(1f, 0.3f).SetEase(Ease.OutQuad));
+            cardSeq.Append(cardTransform.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
+            cardSeq.AppendCallback(() => cardView.ShowFaceDown());
+            cardSeq.Append(cardTransform.DOScaleX(1f, 0.3f).SetEase(Ease.OutQuad));
 
-            // 3: Fly back to the owner's deck position
-            rotateSeq.Append(cardTransform.DOAnchorPos(targetPosition, 0.35f).SetEase(Ease.InBack));
+            // 3: Move decks to the owner's deck position
+            cardSeq.Append(cardTransform.DOAnchorPos(targetPosition, 0.35f).SetEase(Ease.InBack));
 
-            returnSeq.Join(rotateSeq);
+            returnSeq.Join(cardSeq);
         }
 
         returnSeq.OnComplete(() =>

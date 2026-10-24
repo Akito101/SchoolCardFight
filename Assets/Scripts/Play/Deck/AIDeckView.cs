@@ -73,11 +73,7 @@ public class AIDeckView : MonoBehaviour
 
     public CardData DrawCard()
     {
-        if (aiDeckData.Count == 0)
-        {
-            Debug.Log("frontDeck is empty - this is your lose condition trigger point");
-            return null;
-        }
+        if (aiDeckData.Count == 0) return null;
 
         int topIndex = aiDeckData.Count - 1;
 

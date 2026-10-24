@@ -188,7 +188,7 @@ public class BattleTestManager : MonoBehaviour
          });
     }
 
-    private void CheckAndResolveMatch(bool isPlayerWinner, System.Action<bool> onMatchResolved)
+    private void CheckAndResolveMatch(bool isPlayerWinner, Action<bool> onMatchResolved)
     {
         List<CardData> boardCards = boardDeckView.GetBoardDeck();
         if (boardCards.Count < 2)

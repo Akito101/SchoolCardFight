@@ -74,11 +74,7 @@ public class PlayerDeckView : MonoBehaviour
 
     public CardData DrawCard()
     {
-        if (playerDeckData.Count == 0)
-        {
-            Debug.Log("frontDeck is empty - this is your lose condition trigger point");
-            return null;
-        }
+        if (playerDeckData.Count == 0) return null;
 
         int topIndex = playerDeckData.Count - 1;
 

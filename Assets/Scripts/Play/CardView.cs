@@ -68,7 +68,7 @@ public class CardView : MonoBehaviour
         float targetScale,
         Action onComplete)
     {
-        currentCardTransform.DOKill(); // stop any previous animation on this object
+        currentCardTransform.DOKill();
 
         Sequence seq = DOTween.Sequence();
 
