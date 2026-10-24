@@ -15,21 +15,27 @@ public class BattleTestManager : MonoBehaviour
     [SerializeField] private PlayerDeckView playerDeckView;
     [SerializeField] private AIDeckView aiDeckView;
     [SerializeField] private BoardDeckView boardDeckView;
-    [SerializeField] private List<CardData> testCards;
+    [SerializeField] private List<CardData> playerCards;
+    [SerializeField] private List<CardData> aiCards;
 
     private CardView playerCCView; // player current card view
     private CardView aiCCView; // ai current card view
+    private bool playerHasCard = true;
+    private bool aiHasCard = true;
     private bool isBusy;
     private Turn currentTurn = Turn.Player;
 
     private void Start()
     {
-        playerDeckView.BuildDeck(testCards, null);
-        aiDeckView.BuildDeck(testCards, null);
+        playerDeckView.BuildDeck(playerCards, null);
+        aiDeckView.BuildDeck(aiCards, null);
         boardDeckView.ClearBoard();
 
         playerCCView = playerDeckView.SpawnCard();
+        playerHasCard = true;
+
         aiCCView = aiDeckView.SpawnCard();
+        aiHasCard = true;
 
         SetSwipe(playerCCView, true);
         SetSwipe(aiCCView, false);
@@ -39,32 +45,26 @@ public class BattleTestManager : MonoBehaviour
     {
         if (currentTurn != Turn.Player || isBusy) return;
 
-        CardData drawPLayerCard = playerDeckView.DrawCard();
+        CardData drawPlayerCard = playerDeckView.DrawCard();
 
-        if (drawPLayerCard == null)
-        {
-            isBusy = true;
-
-            ReturnBoardCardsToOwnerDecks(() =>
-            {
-                currentTurn = Turn.AI;
-                isBusy = false;
-                DrawAICard();
-            });
-
-            return;
-        }
+        if (drawPlayerCard == null) return;
 
         isBusy = true;
         SetSwipe(playerCCView, false);
 
-        playerDeckView.PrepareDrawnCard(playerCCView, drawPLayerCard);
-        boardDeckView.AddCardToBoardDeck(drawPLayerCard, playerCCView, BoardCardOwner.Player,
+        playerDeckView.PrepareDrawnCard(playerCCView, drawPlayerCard);
+        boardDeckView.AddCardToBoardDeck(drawPlayerCard, playerCCView, BoardCardOwner.Player,
         FinishPlayerTurn);
 
         if (playerDeckView.GetCardCount() > 0)
         {
             playerCCView = playerDeckView.SpawnCard();
+            playerHasCard = true;
+        }
+        else
+        {
+            playerCCView = null;
+            playerHasCard = false;
         }
 
         return;
@@ -72,9 +72,9 @@ public class BattleTestManager : MonoBehaviour
 
     private void FinishPlayerTurn()
     {
-        CheckAndResolveMatch(isPlayerWinner: true, (isMatch) =>
+        CheckAndResolveMatch(isPlayerWinner: true, (playerWin) =>
         {
-            if (isMatch)
+            if (playerWin)
             {
                 currentTurn = Turn.Player;
                 isBusy = false;
@@ -83,7 +83,7 @@ public class BattleTestManager : MonoBehaviour
             else
             {
                 currentTurn = Turn.AI;
-                DOVirtual.DelayedCall(0.3f, () =>
+                DOVirtual.DelayedCall(0.25f, () =>
                 {
                     DrawAICard();
                 });
@@ -101,13 +101,25 @@ public class BattleTestManager : MonoBehaviour
 
             ReturnBoardCardsToOwnerDecks(() =>
             {
-                currentTurn = Turn.Player;
+                if (!playerHasCard && playerDeckView.GetCardCount() > 0)
+                {
+                    playerCCView = playerDeckView.SpawnCard();
+                    playerHasCard = true;
+                }
+
+                if (!aiHasCard && aiDeckView.GetCardCount() > 0)
+                {
+                    aiCCView = aiDeckView.SpawnCard();
+                    aiHasCard = true;
+                }
+
+                currentTurn = Turn.AI;
                 isBusy = false;
 
-                if (playerDeckView.GetCardCount() > 0)
-                {
-                    SetSwipe(playerCCView, true);
-                }
+                DOVirtual.DelayedCall(0.4f, () =>
+               {
+                   DrawAICard();
+               });
             });
 
             return;
@@ -119,14 +131,20 @@ public class BattleTestManager : MonoBehaviour
         if (aiDeckView.GetCardCount() > 0)
         {
             aiCCView = aiDeckView.SpawnCard();
+            aiHasCard = true;
+        }
+        else
+        {
+            aiCCView = null;
+            aiHasCard = false;
         }
     }
 
     private void FinishAITurn()
     {
-        CheckAndResolveMatch(isPlayerWinner: false, (isMatch) =>
+        CheckAndResolveMatch(isPlayerWinner: false, (aiWin) =>
          {
-             if (isMatch)
+             if (aiWin)
              {
                  DOVirtual.DelayedCall(0.4f, () =>
                 {
@@ -135,10 +153,35 @@ public class BattleTestManager : MonoBehaviour
              }
              else
              {
-                 currentTurn = Turn.Player;
-                 isBusy = false;
-                 if (playerDeckView.GetCardCount() > 0)
+                 if (playerDeckView.GetCardCount() == 0)
                  {
+                     isBusy = true;
+                     SetSwipe(playerCCView, false);
+
+                     ReturnBoardCardsToOwnerDecks(() =>
+                     {
+                         if (!playerHasCard && playerDeckView.GetCardCount() > 0)
+                         {
+                             playerCCView = playerDeckView.SpawnCard();
+                             playerHasCard = true;
+                         }
+
+                         if (!aiHasCard && aiDeckView.GetCardCount() > 0)
+                         {
+                             aiCCView = aiDeckView.SpawnCard();
+                             aiHasCard = true;
+                         }
+
+                         currentTurn = Turn.Player;
+                         isBusy = false;
+
+                         SetSwipe(playerCCView, true);
+                     });
+                 }
+                 else
+                 {
+                     currentTurn = Turn.Player;
+                     isBusy = false;
                      SetSwipe(playerCCView, true);
                  }
              }
@@ -189,6 +232,7 @@ public class BattleTestManager : MonoBehaviour
 
                     isBusy = true;
                     SetSwipe(playerCCView, false);
+                    // TODO: Connect with WIN/LOSE UI here 
                     return;
                 }
 
@@ -223,6 +267,8 @@ public class BattleTestManager : MonoBehaviour
 
     private void SetSwipe(CardView card, bool enable)
     {
+        if (card == null) return;
+
         SwipeToPlay swipe = card.GetComponent<SwipeToPlay>();
         if (swipe != null)
         {

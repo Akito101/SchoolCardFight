@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
-  m_Name: card5
+  m_Name: spirit1
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardFrontSprite: {fileID: 21300000, guid: 1e7e589d3799d43d388de34503c0cd94, type: 3}
-  category: 3
+  cardFrontSprite: {fileID: 21300000, guid: 074467de904ec42ab81648190812b3f2, type: 3}
+  category: 0
   isArtifact: 0
   artifactEffect: 1

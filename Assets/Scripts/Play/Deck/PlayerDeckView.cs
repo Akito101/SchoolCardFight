@@ -106,15 +106,15 @@ public class PlayerDeckView : MonoBehaviour
         return newCard;
     }
 
-    public void PrepareDrawnCard(CardView cardView, CardData cardData)
+    public void PrepareDrawnCard(CardView currentCardView, CardData currentCardData)
     {
-        if (cardView == null || cardData == null)
+        if (currentCardView == null || currentCardData == null)
         {
             Debug.LogWarning("Cannot prepare a null card view or card data.");
             return;
         }
 
-        cardView.SetCardFront(cardData.cardFrontSprite);
+        currentCardView.SetCardFront(currentCardData.cardFrontSprite);
     }
 
     private void ClearDeck()
