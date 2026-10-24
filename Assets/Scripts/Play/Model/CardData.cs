@@ -28,12 +28,10 @@ public class CardData : ScriptableObject
     // The card's picture. Old cards saved as "cardFrontSprite" load into this slot too.
     [FormerlySerializedAs("cardFrontSprite")]
     public Sprite cardArt;
-
     public CardCategory category;
 
-    [Header("Only fill these in if this card is an Artifact")]
-    public bool isArtifact;
-    public ArtifactEffect artifactEffect;
+    [HideInInspector] public bool isArtifact;
+    [HideInInspector] public ArtifactEffect artifactEffect;
 
     // Keeps the battle scene code working (it uses this name for the picture)
     public Sprite cardFrontSprite
