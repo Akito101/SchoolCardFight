@@ -17,7 +17,8 @@ public class BattleTestManager : MonoBehaviour
     [SerializeField] private BoardDeckView boardDeckView;
 
     [Header("UI References")]
-    [SerializeField] private SpellUIController spellUIController;
+    [SerializeField] private ArtifactContainerController artifactContainerController;
+    [SerializeField] private ArtifactUIController artifactUIController;
 
     [Header("Cards Settings")]
     [SerializeField] private List<CardData> playerCards;
@@ -43,9 +44,9 @@ public class BattleTestManager : MonoBehaviour
 
     private void Start()
     {
+        // 1: Reset the board and wait for both decks to finish their opening animations.
         isBusy = true;
         boardDeckView.ClearBoard();
-
         initialDeckAnimationsPending = 2;
 
         playerDeckView.BuildDeck(
@@ -58,27 +59,26 @@ public class BattleTestManager : MonoBehaviour
             aiArtifactEffect,
             OnInitialDeckAnimationComplete);
 
-        if (spellUIController != null)
-        {
-            spellUIController.UpdateSpellUI(playerArtifactEffect);
-        }
+        // 2: Display the player's artifact Container.
+        artifactContainerController.UpdateSpellUI(playerArtifactEffect);
     }
 
     private void OnInitialDeckAnimationComplete()
     {
+        // 1: Condition to ensure animtion run only once for both decks.
         initialDeckAnimationsPending--;
-
         if (initialDeckAnimationsPending > 0) return;
 
+        // 2: Spawn the initial cards once.
         playerCCView = playerDeckView.SpawnCard();
         playerHasCard = true;
 
         aiCCView = aiDeckView.SpawnCard();
         aiHasCard = true;
 
+        // 3: Start the player's turn and enable the player's card interaction.
         currentTurn = Turn.Player;
         isBusy = false;
-
         SetSwipe(playerCCView, true);
         SetSwipe(aiCCView, false);
     }
@@ -87,37 +87,46 @@ public class BattleTestManager : MonoBehaviour
     {
         if (currentTurn != Turn.Player || isBusy) return;
 
+        // 1: Draw and validate the player's next card.
         CardData drawPlayerCard = playerDeckView.DrawCard();
-
         if (drawPlayerCard == null) return;
 
+        // 2: Disable the player's card interaction.
         isBusy = true;
         SetSwipe(playerCCView, false);
 
+        // 3: Move the drawn card to the board and resolve its artifact effect.
         playerDeckView.PrepareDrawnCard(playerCCView, drawPlayerCard);
-        PlayerArtifactActivationCheck(drawPlayerCard);
+        PlayerArtifactActivation(drawPlayerCard);
         boardDeckView.AddCardToBoardDeck(drawPlayerCard, playerCCView, BoardCardOwner.Player,
         FinishPlayerTurn);
 
-        if (playerDeckView.GetCardCount() > 0)
-        {
-            playerCCView = playerDeckView.SpawnCard();
-            playerHasCard = true;
-        }
-        else
-        {
-            playerCCView = null;
-            playerHasCard = false;
-        }
-
-        return;
+        // 4: Prepare the next card.
+        UpdatePlayerCurrentCard();
     }
 
-    public void PlayerArtifactActivationCheck(CardData drawPlayerCard)
+    public void PlayerArtifactActivation(CardData drawPlayerCard)
     {
-        if (drawPlayerCard.isArtifact && drawPlayerCard.artifactEffect == ArtifactEffect.Protection)
+        if (drawPlayerCard.isArtifact)
         {
-            artifactController.ActivateProtection(BoardCardOwner.Player);
+            if (drawPlayerCard.artifactEffect == ArtifactEffect.Protection)
+            {
+                artifactController.ActivateProtection(BoardCardOwner.Player);
+            }
+            else if (drawPlayerCard.artifactEffect == ArtifactEffect.ReshuffleOpponentDeck)
+            {
+                artifactUIController.ShowArtifactNotification(ArtifactEffect.ReshuffleOpponentDeck, () =>
+                {
+                    // artifactController.ReshuffleOpponentDeck(BoardCardOwner.Player);
+                });
+            }
+            else if (drawPlayerCard.artifactEffect == ArtifactEffect.StealCard)
+            {
+                artifactUIController.ShowArtifactNotification(ArtifactEffect.StealCard, () =>
+               {
+                   // artifactController.StealOpponentCard(BoardCardOwner.Player);
+               });
+            }
         }
     }
 
@@ -125,12 +134,12 @@ public class BattleTestManager : MonoBehaviour
     {
         CheckAndResolveMatch(isPlayerWinner: true, (playerWin) =>
         {
+            // 1: If the player won, continue with the player's turn.
             if (playerWin)
             {
-                currentTurn = Turn.Player;
-                isBusy = false;
-                SetSwipe(playerCCView, true);
+                SetPlayerTurn();
             }
+            // 2: If player didn't win, continue with the AI's turn.
             else
             {
                 currentTurn = Turn.AI;
@@ -144,25 +153,14 @@ public class BattleTestManager : MonoBehaviour
 
     private void DrawAICard()
     {
+        // 1: Draw the AI's next card and return the board cards if its deck is empty.
         CardData drawAICard = aiDeckView.DrawCard();
-
         if (drawAICard == null)
         {
             isBusy = true;
-
             ReturnBoardCardsToOwnerDecks(() =>
             {
-                if (!playerHasCard && playerDeckView.GetCardCount() > 0)
-                {
-                    playerCCView = playerDeckView.SpawnCard();
-                    playerHasCard = true;
-                }
-
-                if (!aiHasCard && aiDeckView.GetCardCount() > 0)
-                {
-                    aiCCView = aiDeckView.SpawnCard();
-                    aiHasCard = true;
-                }
+                RestoreMissingCards();
 
                 currentTurn = Turn.AI;
                 isBusy = false;
@@ -176,27 +174,37 @@ public class BattleTestManager : MonoBehaviour
             return;
         }
 
+        // 2: Move the drawn card to the board and resolve its artifact effect.
         aiDeckView.PrepareDrawnCard(aiCCView, drawAICard);
-        AIArtifactActivationCheck(drawAICard);
+        AIArtifactActivation(drawAICard);
         boardDeckView.AddCardToBoardDeck(drawAICard, aiCCView, BoardCardOwner.AI, FinishAITurn);
 
-        if (aiDeckView.GetCardCount() > 0)
-        {
-            aiCCView = aiDeckView.SpawnCard();
-            aiHasCard = true;
-        }
-        else
-        {
-            aiCCView = null;
-            aiHasCard = false;
-        }
+        // 3: Prepare the next card for the AI.
+        UpdateAICurrentCard();
     }
 
-    public void AIArtifactActivationCheck(CardData drawAICard)
+    public void AIArtifactActivation(CardData drawAICard)
     {
-        if (drawAICard.isArtifact && drawAICard.artifactEffect == ArtifactEffect.Protection)
+        if (drawAICard.isArtifact)
         {
-            artifactController.ActivateProtection(BoardCardOwner.AI);
+            if (drawAICard.artifactEffect == ArtifactEffect.Protection)
+            {
+                artifactController.ActivateProtection(BoardCardOwner.AI);
+            }
+            else if (drawAICard.artifactEffect == ArtifactEffect.ReshuffleOpponentDeck)
+            {
+                artifactUIController.ShowArtifactNotification(ArtifactEffect.ReshuffleOpponentDeck, () =>
+                {
+                    // artifactController.ReshuffleOpponentDeck(BoardCardOwner.AI);
+                });
+            }
+            else if (drawAICard.artifactEffect == ArtifactEffect.StealCard)
+            {
+                artifactUIController.ShowArtifactNotification(ArtifactEffect.StealCard, () =>
+               {
+                   // artifactController.StealOpponentCard(BoardCardOwner.AI);
+               });
+            }
         }
     }
 
@@ -204,6 +212,7 @@ public class BattleTestManager : MonoBehaviour
     {
         CheckAndResolveMatch(isPlayerWinner: false, (aiWin) =>
          {
+             // 1: If the AI won, continue with the AI's turn.
              if (aiWin)
              {
                  DOVirtual.DelayedCall(0.4f, () =>
@@ -211,6 +220,7 @@ public class BattleTestManager : MonoBehaviour
                     DrawAICard();
                 });
              }
+             // 2: If the AI didn't win, check if the player has cards left and continue with the player's turn.
              else
              {
                  if (playerDeckView.GetCardCount() == 0)
@@ -220,29 +230,13 @@ public class BattleTestManager : MonoBehaviour
 
                      ReturnBoardCardsToOwnerDecks(() =>
                      {
-                         if (!playerHasCard && playerDeckView.GetCardCount() > 0)
-                         {
-                             playerCCView = playerDeckView.SpawnCard();
-                             playerHasCard = true;
-                         }
-
-                         if (!aiHasCard && aiDeckView.GetCardCount() > 0)
-                         {
-                             aiCCView = aiDeckView.SpawnCard();
-                             aiHasCard = true;
-                         }
-
-                         currentTurn = Turn.Player;
-                         isBusy = false;
-
-                         SetSwipe(playerCCView, true);
+                         RestoreMissingCards();
+                         SetPlayerTurn();
                      });
                  }
                  else
                  {
-                     currentTurn = Turn.Player;
-                     isBusy = false;
-                     SetSwipe(playerCCView, true);
+                     SetPlayerTurn();
                  }
              }
          });
@@ -250,41 +244,51 @@ public class BattleTestManager : MonoBehaviour
 
     private void CheckAndResolveMatch(bool isPlayerWinner, Action<bool> onMatchResolved)
     {
-        List<CardData> boardCards = boardDeckView.GetBoardDeck();
-        if (boardCards.Count < 2)
+        // 1: Read the latest two cards and stop when there is no possible match.
+        List<CardData> boardDeck = boardDeckView.GetBoardDeck();
+        if (boardDeck.Count < 2)
         {
             onMatchResolved(false);
             return;
         }
 
-        CardData latestCard = boardCards[boardCards.Count - 1];
-        CardData previousCard = boardCards[boardCards.Count - 2];
+        CardData latestCard = boardDeck[boardDeck.Count - 1];
+        CardData previousCard = boardDeck[boardDeck.Count - 2];
 
+        // 2: Resolve a matching pair or report that no match occurred.
         if (latestCard.category == previousCard.category)
         {
+            // 3: Check if the defending party has an active Protection artifact and consume it if available.
             BoardCardOwner defendingOwner = isPlayerWinner ? BoardCardOwner.AI : BoardCardOwner.Player;
 
-            if (artifactController != null && artifactController.ConsumeProtection(defendingOwner))
+            if (artifactController != null && artifactController.ConsumeProtection(defendingOwner, () =>
             {
+                isBusy = false;
                 onMatchResolved(false);
+            }))
+            {
+                isBusy = true;
+                SetSwipe(playerCCView, false);
                 return;
             }
 
             isBusy = true;
             SetSwipe(playerCCView, false);
 
+            // 4: Animate the board cards moving to the winner's deck.
             RectTransform winnerDeckTransform = isPlayerWinner ? playerDeckView.GetComponent<RectTransform>() : aiDeckView.GetComponent<RectTransform>();
             Vector2 targetDeckPos = winnerDeckTransform.anchoredPosition;
 
             boardDeckView.AddBoardDeckToWinnerDeck(
             targetDeckPos,
-            boardCards =>
+            boardDeck =>
             {
+                // 5: Reset the Protection active artifact for the winning owner.
                 BoardCardOwner winningOwner = isPlayerWinner ? BoardCardOwner.Player : BoardCardOwner.AI;
                 artifactController.ResetProtectionOnMatchWinner(winningOwner);
 
-                // Check the loser's deck count to determine if the match is over
-                void FinishReshuffle()
+                // 7: Check if the match is truly over.
+                void CheckTrueWinner()
                 {
                     int loserCardCount = isPlayerWinner
                         ? aiDeckView.GetCardCount()
@@ -306,18 +310,18 @@ public class BattleTestManager : MonoBehaviour
                     onMatchResolved(true);
                 }
 
-                // Add the won cards to the winner's remaining deck and reshuffle it.
+                // 6: Add the won cards back to the winner's deck.
                 if (isPlayerWinner)
                 {
                     playerDeckView.AddCardsAndReshuffle(
-                    boardCards,
-                    FinishReshuffle);
+                    boardDeck,
+                    CheckTrueWinner);
                 }
                 else
                 {
                     aiDeckView.AddCardsAndReshuffle(
-                   boardCards,
-                   FinishReshuffle);
+                   boardDeck,
+                   CheckTrueWinner);
                 }
             });
             return;
@@ -328,6 +332,7 @@ public class BattleTestManager : MonoBehaviour
 
     private void ReturnBoardCardsToOwnerDecks(Action onComplete)
     {
+        // 1: Return each board card to its owner's deck.
         Vector2 playerDeckPosition =
             playerDeckView.GetComponent<RectTransform>().anchoredPosition;
 
@@ -339,6 +344,7 @@ public class BattleTestManager : MonoBehaviour
             aiDeckPosition,
             (playerCards, aiCards) =>
             {
+                // 2: Reshuffle both decks and continue after both operations finish.
                 int reshufflesPending = 2;
 
                 void FinishReshuffle()
@@ -358,10 +364,56 @@ public class BattleTestManager : MonoBehaviour
                 aiDeckView.AddCardsAndReshuffle(
                 aiCards,
                 FinishReshuffle);
-
-
             }
         );
+    }
+
+    private void UpdatePlayerCurrentCard()
+    {
+        if (playerDeckView.GetCardCount() > 0)
+        {
+            playerCCView = playerDeckView.SpawnCard();
+            playerHasCard = true;
+        }
+        else
+        {
+            playerCCView = null;
+            playerHasCard = false;
+        }
+    }
+
+    private void UpdateAICurrentCard()
+    {
+        if (aiDeckView.GetCardCount() > 0)
+        {
+            aiCCView = aiDeckView.SpawnCard();
+            aiHasCard = true;
+        }
+        else
+        {
+            aiCCView = null;
+            aiHasCard = false;
+        }
+    }
+
+    private void RestoreMissingCards()
+    {
+        if (!playerHasCard && playerDeckView.GetCardCount() > 0)
+        {
+            UpdatePlayerCurrentCard();
+        }
+
+        if (!aiHasCard && aiDeckView.GetCardCount() > 0)
+        {
+            UpdateAICurrentCard();
+        }
+    }
+
+    private void SetPlayerTurn()
+    {
+        currentTurn = Turn.Player;
+        isBusy = false;
+        SetSwipe(playerCCView, true);
     }
 
     private void SetSwipe(CardView card, bool enable)

@@ -70,7 +70,7 @@ public class CardView : MonoBehaviour
                 case ArtifactEffect.Protection:
                     if (protectionOverlay) protectionOverlay.SetActive(true);
                     break;
-                case ArtifactEffect.ReshuffleEnemyCard:
+                case ArtifactEffect.ReshuffleOpponentDeck:
                     if (reshuffleOverlay) reshuffleOverlay.SetActive(true);
                     break;
                 case ArtifactEffect.StealCard:

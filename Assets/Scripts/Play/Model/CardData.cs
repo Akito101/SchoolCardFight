@@ -14,7 +14,7 @@ public enum ArtifactEffect
 {
     None,
     Protection,
-    ReshuffleEnemyCard,
+    ReshuffleOpponentDeck,
     StealCard
 }
 

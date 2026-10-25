@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class ArtifactController : MonoBehaviour
 {
+    [Header("UI References")]
+    [SerializeField] private ArtifactUIController artifactUIController;
+
     private bool playerHasProtection = false;
     private bool aiHasProtection = false;
 
@@ -10,28 +13,35 @@ public class ArtifactController : MonoBehaviour
         if (owner == BoardCardOwner.Player)
         {
             playerHasProtection = true;
-            Debug.Log("🛡️ PLAYER Protection Artifact activated!");
         }
         else if (owner == BoardCardOwner.AI)
         {
             aiHasProtection = true;
-            Debug.Log("🛡️ AI Protection Artifact activated!");
         }
     }
 
-    public bool ConsumeProtection(BoardCardOwner defender)
+    public bool ConsumeProtection(BoardCardOwner defender, System.Action onNotificationComplete = null)
     {
         if (defender == BoardCardOwner.Player && playerHasProtection)
         {
             playerHasProtection = false;
-            Debug.Log("🛡️ Player's Protection triggered! AI match attempt was blocked!");
+
+            if (artifactUIController != null)
+            {
+                artifactUIController.ShowArtifactNotification(ArtifactEffect.Protection, onNotificationComplete);
+            }
+
             return true;
         }
 
         if (defender == BoardCardOwner.AI && aiHasProtection)
         {
             aiHasProtection = false;
-            Debug.Log("🛡️ AI's Protection triggered! Player match attempt was blocked!");
+
+            if (artifactUIController != null)
+            {
+                artifactUIController.ShowArtifactNotification(ArtifactEffect.Protection, onNotificationComplete);
+            }
             return true;
         }
 
