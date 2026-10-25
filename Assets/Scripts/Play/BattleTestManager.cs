@@ -27,6 +27,7 @@ public class BattleTestManager : MonoBehaviour
     [SerializeField] private ArtifactEffect playerArtifactEffect = ArtifactEffect.Protection;
     [SerializeField] private ArtifactEffect aiArtifactEffect = ArtifactEffect.None;
 
+    private ArtifactController artifactController;
     private CardView playerCCView; // player current card view
     private CardView aiCCView; // ai current card view
     private bool playerHasCard = true;
@@ -34,6 +35,11 @@ public class BattleTestManager : MonoBehaviour
     private bool isBusy;
     private Turn currentTurn = Turn.Player;
     private int initialDeckAnimationsPending;
+
+    private void Awake()
+    {
+        artifactController = GetComponent<ArtifactController>();
+    }
 
     private void Start()
     {
@@ -89,6 +95,7 @@ public class BattleTestManager : MonoBehaviour
         SetSwipe(playerCCView, false);
 
         playerDeckView.PrepareDrawnCard(playerCCView, drawPlayerCard);
+        PlayerArtifactActivationCheck(drawPlayerCard);
         boardDeckView.AddCardToBoardDeck(drawPlayerCard, playerCCView, BoardCardOwner.Player,
         FinishPlayerTurn);
 
@@ -104,6 +111,14 @@ public class BattleTestManager : MonoBehaviour
         }
 
         return;
+    }
+
+    public void PlayerArtifactActivationCheck(CardData drawPlayerCard)
+    {
+        if (drawPlayerCard.isArtifact && drawPlayerCard.artifactEffect == ArtifactEffect.Protection)
+        {
+            artifactController.ActivateProtection(BoardCardOwner.Player);
+        }
     }
 
     private void FinishPlayerTurn()
@@ -162,6 +177,7 @@ public class BattleTestManager : MonoBehaviour
         }
 
         aiDeckView.PrepareDrawnCard(aiCCView, drawAICard);
+        AIArtifactActivationCheck(drawAICard);
         boardDeckView.AddCardToBoardDeck(drawAICard, aiCCView, BoardCardOwner.AI, FinishAITurn);
 
         if (aiDeckView.GetCardCount() > 0)
@@ -173,6 +189,14 @@ public class BattleTestManager : MonoBehaviour
         {
             aiCCView = null;
             aiHasCard = false;
+        }
+    }
+
+    public void AIArtifactActivationCheck(CardData drawAICard)
+    {
+        if (drawAICard.isArtifact && drawAICard.artifactEffect == ArtifactEffect.Protection)
+        {
+            artifactController.ActivateProtection(BoardCardOwner.AI);
         }
     }
 
@@ -238,6 +262,14 @@ public class BattleTestManager : MonoBehaviour
 
         if (latestCard.category == previousCard.category)
         {
+            BoardCardOwner defendingOwner = isPlayerWinner ? BoardCardOwner.AI : BoardCardOwner.Player;
+
+            if (artifactController != null && artifactController.ConsumeProtection(defendingOwner))
+            {
+                onMatchResolved(false);
+                return;
+            }
+
             isBusy = true;
             SetSwipe(playerCCView, false);
 
@@ -248,6 +280,9 @@ public class BattleTestManager : MonoBehaviour
             targetDeckPos,
             boardCards =>
             {
+                BoardCardOwner winningOwner = isPlayerWinner ? BoardCardOwner.Player : BoardCardOwner.AI;
+                artifactController.ResetProtectionOnMatchWinner(winningOwner);
+
                 // Check the loser's deck count to determine if the match is over
                 void FinishReshuffle()
                 {

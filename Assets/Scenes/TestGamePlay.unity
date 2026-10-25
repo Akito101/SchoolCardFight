@@ -242,6 +242,7 @@ MonoBehaviour:
   playerDeckView: {fileID: 284550779}
   aiDeckView: {fileID: 714466096}
   boardDeckView: {fileID: 1912832063}
+  spellUIController: {fileID: 1640206175}
   playerCards:
   - {fileID: 11400000, guid: b0517f0d6a61ae3418ba023a85fec250, type: 2}
   - {fileID: 11400000, guid: e1d474129e48c4d498bec34f066a27ce, type: 2}
@@ -264,7 +265,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 35e8dbcadad4c4607a9730805672b8b7, type: 2}
   - {fileID: 11400000, guid: 368706ad41c9c2549bd6ab017f5e99e1, type: 2}
   - {fileID: 11400000, guid: 3090626a9594e49e5ab20bbc86c718fc, type: 2}
-  playerArtifactEffect: 1
+  playerArtifactEffect: 3
   aiArtifactEffect: 2
 --- !u!114 &203046288
 MonoBehaviour:
@@ -1058,7 +1059,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 999
+  m_text: '0
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1421,6 +1424,7 @@ GameObject:
   - component: {fileID: 1640206172}
   - component: {fileID: 1640206174}
   - component: {fileID: 1640206173}
+  - component: {fileID: 1640206175}
   m_Layer: 5
   m_Name: SpellContainerBg
   m_TagString: Untagged
@@ -1488,6 +1492,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1640206171}
   m_CullTransparentMesh: 1
+--- !u!114 &1640206175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1640206171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f402bf14c0044a518c55bc178331c25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpellUIController
+  spell1: {fileID: 90167313}
+  spell2: {fileID: 1626116119}
+  spell3: {fileID: 666605146}
 --- !u!1 &1912832061
 GameObject:
   m_ObjectHideFlags: 0

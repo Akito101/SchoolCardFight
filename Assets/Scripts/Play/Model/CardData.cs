@@ -7,8 +7,7 @@ public enum CardCategory
     Legends,
     Supernatural,
     Beasts,
-    Humans,
-    developers
+    Humans
 }
 
 public enum ArtifactEffect

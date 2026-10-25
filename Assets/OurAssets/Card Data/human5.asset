@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
-  m_Name: dev1
+  m_Name: human5
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Developers
   cardArt: {fileID: 21300000, guid: 466b32bab4bbd41debbd36ef7060ba65, type: 3}
