@@ -125,7 +125,7 @@ public class DeckBuilder : MonoBehaviour
 
         deckTabButton.interactable = !showingDeck;          // grayed out = the tab you're on
         inventoryTabButton.interactable = showingDeck;
-        inspectButtonText.text = inspectMode ? "Inspect: ON" : "Inspect: OFF";
+        inspectButtonText.text = inspectMode ? "Locked: ON" : "Locked: OFF";
 
         int inDeck = PlayerDeck.TotalInDeck();
         deckCountText.text = $"Deck: {inDeck} cards";

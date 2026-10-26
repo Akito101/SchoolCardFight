@@ -43,8 +43,8 @@ public class ShopManager : MonoBehaviour
     private void Refresh()
     {
         coinsText.text = $"Coins: {PlayerProgress.Coins}";
-        buyButtonText.text = $"Buy Pack\n{packPrice} coins";
-        ownedPacksText.text = $"Your Packs\nx{PlayerPacks.Count}\n(tap to open)";
+        buyButtonText.text = $"Buy Pack - {packPrice} coins";
+        ownedPacksText.text = $"Your Packs x {PlayerPacks.Count}\n(tap to open)";
     }
 
     private void OnBuyPressed()

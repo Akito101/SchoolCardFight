@@ -11,8 +11,9 @@ public class PackOpener : MonoBehaviour
     public CardDatabase database;
     public int starterPacks = 3;
     public int cardsPerPack = 5;
-    public string battleScene = "TestGamePlay";   // where to go after the very first packs
-    public string mapScene = "Map";               // where to go after opening shop packs
+    public string introScene = "VNIntro";
+    public string battleScene = "TestGamePlay";
+    public string mapScene = "Map";
 
     [Header("UI")]
     public Button packButton;
@@ -97,12 +98,16 @@ public class PackOpener : MonoBehaviour
     {
         if (firstTime)
         {
+            // Mark the starter pack sequence as completed.
             PlayerPrefs.SetInt("StarterPacksOpened", 1);
             PlayerPrefs.Save();
-            SceneManager.LoadScene(battleScene);
+
+            // Play the VN intro before the first battle.
+            SceneManager.LoadScene(introScene);
         }
         else
         {
+            // Shop packs return to the map.
             SceneManager.LoadScene(mapScene);
         }
     }

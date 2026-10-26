@@ -1,106 +1,72 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using TMPro;
-
-[System.Serializable]
-public class DialogueLine
-{
-    public string speakerName;
-    [TextArea(2, 5)] public string text;
-    public Sprite background;      // leave empty to keep the previous background
-    public Sprite character;       // leave empty to keep the previous character
-    public bool hideCharacter;     // tick for narration lines with no character
-}
+using DG.Tweening;
 
 public class VNManager : MonoBehaviour
 {
-    [Header("Story")]
-    public List<DialogueLine> lines = new List<DialogueLine>();
-    public string nextScene = "TestGamePlay"; // will become the pack-opening scene later
+    [Header("Pictures in order. Each tap shows the next one.")]
+    public Sprite[] steps;
+    public float fadeTime = 0.35f;
 
-    [Header("UI References")]
-    public Image backgroundImage;
-    public Image characterImage;
-    public TextMeshProUGUI speakerText;
-    public TextMeshProUGUI dialogueText;
+    [Header("Images (both stretched to fill the screen)")]
+    public Image baseImage;       // shows the current picture
+    public Image overlayImage;    // fades the next picture in on top
 
-    public float charsPerSecond = 40f;
+    [Header("Buttons")]
+    public Button tapArea;
+    public Button skipButton;
 
-    private int index = -1;
-    private bool isTyping = false;
-    private Coroutine typingRoutine;
+    [Header("Scene to load after the last picture")]
+    public string nextScene = "PackOpening";
+
+    private int index = 0;
+
+    void Awake()
+    {
+        tapArea.onClick.AddListener(OnTap);
+        skipButton.onClick.AddListener(GoToNextScene);
+    }
 
     void Start()
     {
-        characterImage.gameObject.SetActive(false); // hidden until a line gives it a sprite
-        ShowNextLine();
-    }
-
-    // Hook this to TapArea's OnClick
-    public void OnScreenTapped()
-    {
-        if (isTyping) FinishTyping();   // first tap completes the line instantly
-        else ShowNextLine();            // second tap moves on
-    }
-
-    // Hook this to SkipButton's OnClick
-    public void OnSkipPressed()
-    {
-        SceneManager.LoadScene(nextScene);
-    }
-
-    private void ShowNextLine()
-    {
-        index++;
-        if (index >= lines.Count)
+        if (steps == null || steps.Length == 0)
         {
-            SceneManager.LoadScene(nextScene);
+            Debug.LogWarning("MangaReader: no pictures in Steps!");
+            GoToNextScene();
             return;
         }
 
-        DialogueLine line = lines[index];
+        baseImage.sprite = steps[0];
+        baseImage.color = Color.white;
 
-        if (line.background != null) backgroundImage.sprite = line.background;
-
-        if (line.hideCharacter)
-        {
-            characterImage.gameObject.SetActive(false);
-        }
-        else if (line.character != null)
-        {
-            characterImage.sprite = line.character;
-            characterImage.gameObject.SetActive(true);
-        }
-
-        speakerText.text = line.speakerName;
-        typingRoutine = StartCoroutine(TypeText(line.text));
+        overlayImage.sprite = null;
+        overlayImage.color = new Color(1f, 1f, 1f, 0f);
     }
 
-    private IEnumerator TypeText(string fullText)
+    private void OnTap()
     {
-        isTyping = true;
-        dialogueText.text = fullText;
-        dialogueText.maxVisibleCharacters = 0;
-        dialogueText.ForceMeshUpdate();
-        int total = dialogueText.textInfo.characterCount;
+        overlayImage.DOComplete();   // if the last fade is still running, finish it first
 
-        float shown = 0f;
-        while (dialogueText.maxVisibleCharacters < total)
+        index++;
+        if (index >= steps.Length)
         {
-            shown += Time.deltaTime * charsPerSecond;
-            dialogueText.maxVisibleCharacters = Mathf.Min(total, (int)shown);
-            yield return null;
+            GoToNextScene();
+            return;
         }
-        isTyping = false;
+
+        Sprite next = steps[index];
+        overlayImage.sprite = next;
+        overlayImage.color = new Color(1f, 1f, 1f, 0f);
+        overlayImage.DOFade(1f, fadeTime).OnComplete(() =>
+        {
+            baseImage.sprite = next;
+            overlayImage.color = new Color(1f, 1f, 1f, 0f);
+        });
     }
 
-    private void FinishTyping()
+    private void GoToNextScene()
     {
-        if (typingRoutine != null) StopCoroutine(typingRoutine);
-        dialogueText.maxVisibleCharacters = 99999;
-        isTyping = false;
+        SceneManager.LoadScene(nextScene);
     }
 }
