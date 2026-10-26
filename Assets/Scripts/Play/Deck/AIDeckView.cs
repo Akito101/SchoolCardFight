@@ -235,11 +235,25 @@ public class AIDeckView : MonoBehaviour
         });
     }
 
-    public CardData StolenCard()
+    public CardData StolenCardByCategory(CardCategory targetCategory)
     {
-        if (aiDeckData.Count == 0) return null;
+        List<int> matchingIndices = new List<int>();
+        for (int i = 0; i < aiDeckData.Count; i++)
+        {
+            if (aiDeckData[i].category == targetCategory)
+            {
+                matchingIndices.Add(i);
+            }
+        }
 
-        int randomIndex = Random.Range(0, aiDeckData.Count);
+        // If opponent has no cards of this category, return null (do not steal)
+        if (matchingIndices.Count == 0)
+        {
+            Debug.LogWarning($"No cards of category {targetCategory} found in AI deck.");
+            return null;
+        }
+
+        int randomIndex = matchingIndices[UnityEngine.Random.Range(0, matchingIndices.Count)];
         CardData stolenData = aiDeckData[randomIndex];
         CardView stolenView = aiDeckView[randomIndex];
 

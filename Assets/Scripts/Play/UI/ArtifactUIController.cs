@@ -7,7 +7,7 @@ public class ArtifactUIController : MonoBehaviour
     [SerializeField] private GameObject protectionActivationObj;
     [SerializeField] private GameObject reshuffleActivationObj;
     [SerializeField] private GameObject stealActivationObj;
-    [SerializeField] private GameObject stealArtifactWheel;
+    [SerializeField] private WheelClickDetector wheelClickDetector;
 
     private float displayDuration = 1f;
     private float fadeDuration = 0.5f;
@@ -17,6 +17,19 @@ public class ArtifactUIController : MonoBehaviour
     private void Awake()
     {
         HideAll();
+    }
+
+    public void ShowStealArtifactWheel(System.Action<CardCategory> onCategoryChosen)
+    {
+        if (wheelClickDetector != null)
+        {
+            wheelClickDetector.ShowWheel(onCategoryChosen);
+        }
+        else
+        {
+            Debug.LogWarning("WheelClickDetector reference is missing in ArtifactUIController.");
+            onCategoryChosen?.Invoke(CardCategory.Humans);
+        }
     }
 
     public void ShowArtifactNotification(ArtifactEffect effect, System.Action onComplete = null)

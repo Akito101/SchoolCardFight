@@ -62,19 +62,11 @@ public class ArtifactController : MonoBehaviour
         if (winner == BoardCardOwner.Player && playerHasProtection)
         {
             playerHasProtection = false;
-            Debug.Log("🛡️ Player won a match! Player's active Protection has been reset.");
         }
         else if (winner == BoardCardOwner.AI && aiHasProtection)
         {
             aiHasProtection = false;
-            Debug.Log("🛡️ AI won a match! AI's active Protection has been reset.");
         }
-    }
-
-    public void ResetAllProtection()
-    {
-        playerHasProtection = false;
-        aiHasProtection = false;
     }
 
     public void ReshuffleOpponentDeck(BoardCardOwner caller, Action onComplete = null)
@@ -105,6 +97,32 @@ public class ArtifactController : MonoBehaviour
 
     public void StealOpponentCard(BoardCardOwner stealingOwner, Action onComplete = null)
     {
+        // 1. If it's the AI's turn, skip the wheel and steal a random card immediately
+        if (stealingOwner == BoardCardOwner.AI)
+        {
+            ExecuteStealLogic(stealingOwner, CardCategory.Humans, onComplete);
+            return;
+        }
+
+        // 2. If it's the Player's turn, show the wheel UI and wait for category selection
+        if (stealingOwner == BoardCardOwner.Player)
+        {
+            if (artifactUIController != null)
+            {
+                artifactUIController.ShowStealArtifactWheel((chosenCategory) =>
+                {
+                    ExecuteStealLogic(stealingOwner, chosenCategory, onComplete);
+                });
+                return;
+            }
+        }
+
+        // Fallback
+        ExecuteStealLogic(stealingOwner, CardCategory.Humans, onComplete);
+    }
+
+    public void ExecuteStealLogic(BoardCardOwner stealingOwner, CardCategory category, Action onComplete = null)
+    {
         CardData stolenData;
         RectTransform receivingDeckTransform;
         RectTransform targetDeckTransform;
@@ -113,7 +131,7 @@ public class ArtifactController : MonoBehaviour
         if (stealingOwner == BoardCardOwner.Player)
         {
             if (aiDeckView == null) { onComplete?.Invoke(); return; }
-            stolenData = aiDeckView.StolenCard();
+            stolenData = aiDeckView.StolenCardByCategory(category);
             targetDeckTransform = aiDeckView.GetComponent<RectTransform>();
             receivingDeckTransform = playerDeckView.GetComponent<RectTransform>();
         }
