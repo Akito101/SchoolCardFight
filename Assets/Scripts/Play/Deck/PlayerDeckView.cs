@@ -26,7 +26,9 @@ public class PlayerDeckView : MonoBehaviour
     public void BuildDeck(List<CardData> initialDeck, ArtifactEffect artifactType, System.Action onAnimationComplete = null)
     {
         ClearDeck();
+
         playerDeckData.AddRange(initialDeck);
+        ShuffleDeck(playerDeckData);
         InsertArtifact(playerDeckData, artifactType);
 
         RebuildDeckViews(onAnimationComplete);
@@ -55,6 +57,17 @@ public class PlayerDeckView : MonoBehaviour
             playerDeckView.Add(newCard);
         }
 
+        AnimateDeckShuffle(onAnimationComplete);
+    }
+
+    public void ReshuffleDeck(System.Action onAnimationComplete = null)
+    {
+        ShuffleDeck(playerDeckData);
+        AnimateDeckShuffle(onAnimationComplete);
+    }
+
+    private void AnimateDeckShuffle(System.Action onAnimationComplete)
+    {
         OverhandDeckShuffleAnimation(playerDeckView, () =>
         {
             RepositionStack();
@@ -62,7 +75,7 @@ public class PlayerDeckView : MonoBehaviour
         });
     }
 
-    private void ShuffleDeck(List<CardData> list)
+    private void ShuffleDeck<T>(List<T> list)
     {
         // Fisher-Yates shuffle - a standard, reliable way to randomize a list
         for (int i = list.Count - 1; i > 0; i--)
@@ -125,16 +138,6 @@ public class PlayerDeckView : MonoBehaviour
 
         currentCardView.SetCardFront(currentCardData.cardFrontSprite);
         currentCardView.SetCardArtifact(currentCardData);
-    }
-
-    private void ClearDeck()
-    {
-        foreach (CardView card in playerDeckView)
-        {
-            if (card != null) Destroy(card.gameObject);
-        }
-        playerDeckView.Clear();
-        playerDeckData.Clear();
     }
 
     private void RepositionStack()
@@ -230,5 +233,35 @@ public class PlayerDeckView : MonoBehaviour
         {
             onComplete?.Invoke();
         });
+    }
+
+    public CardData StolenCard()
+    {
+        if (playerDeckData.Count == 0) return null;
+
+        int randomIndex = Random.Range(0, playerDeckData.Count);
+        CardData stolenData = playerDeckData[randomIndex];
+        CardView stolenView = playerDeckView[randomIndex];
+
+        playerDeckData.RemoveAt(randomIndex);
+        playerDeckView.RemoveAt(randomIndex);
+
+        if (stolenView != null)
+        {
+            Destroy(stolenView.gameObject);
+        }
+
+        RepositionStack();
+        return stolenData;
+    }
+
+    private void ClearDeck()
+    {
+        foreach (CardView card in playerDeckView)
+        {
+            if (card != null) Destroy(card.gameObject);
+        }
+        playerDeckView.Clear();
+        playerDeckData.Clear();
     }
 }

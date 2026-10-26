@@ -34,6 +34,7 @@ public class BattleTestManager : MonoBehaviour
     private bool playerHasCard = true;
     private bool aiHasCard = true;
     private bool isBusy;
+    private bool artifactEffectPending;
     private Turn currentTurn = Turn.Player;
     private int initialDeckAnimationsPending;
 
@@ -97,9 +98,11 @@ public class BattleTestManager : MonoBehaviour
 
         // 3: Move the drawn card to the board and resolve its artifact effect.
         playerDeckView.PrepareDrawnCard(playerCCView, drawPlayerCard);
-        PlayerArtifactActivation(drawPlayerCard);
-        boardDeckView.AddCardToBoardDeck(drawPlayerCard, playerCCView, BoardCardOwner.Player,
-        FinishPlayerTurn);
+        boardDeckView.AddCardToBoardDeck(drawPlayerCard, playerCCView, BoardCardOwner.Player, () =>
+        {
+            PlayerArtifactActivation(drawPlayerCard);
+            FinishPlayerTurn();
+        });
 
         // 4: Prepare the next card.
         UpdatePlayerCurrentCard();
@@ -115,16 +118,21 @@ public class BattleTestManager : MonoBehaviour
             }
             else if (drawPlayerCard.artifactEffect == ArtifactEffect.ReshuffleOpponentDeck)
             {
+                artifactEffectPending = true;
                 artifactUIController.ShowArtifactNotification(ArtifactEffect.ReshuffleOpponentDeck, () =>
                 {
-                    // artifactController.ReshuffleOpponentDeck(BoardCardOwner.Player);
+                    artifactController.ReshuffleOpponentDeck(
+                        BoardCardOwner.Player,
+                        () => artifactEffectPending = false);
                 });
             }
             else if (drawPlayerCard.artifactEffect == ArtifactEffect.StealCard)
             {
+                artifactEffectPending = true;
                 artifactUIController.ShowArtifactNotification(ArtifactEffect.StealCard, () =>
                {
-                   // artifactController.StealOpponentCard(BoardCardOwner.Player);
+                   artifactController.StealOpponentCard(
+                BoardCardOwner.Player, () => artifactEffectPending = false);
                });
             }
         }
@@ -132,6 +140,12 @@ public class BattleTestManager : MonoBehaviour
 
     private void FinishPlayerTurn()
     {
+        if (artifactEffectPending)
+        {
+            DOVirtual.DelayedCall(0.1f, FinishPlayerTurn);
+            return;
+        }
+
         CheckAndResolveMatch(isPlayerWinner: true, (playerWin) =>
         {
             // 1: If the player won, continue with the player's turn.
@@ -176,8 +190,11 @@ public class BattleTestManager : MonoBehaviour
 
         // 2: Move the drawn card to the board and resolve its artifact effect.
         aiDeckView.PrepareDrawnCard(aiCCView, drawAICard);
-        AIArtifactActivation(drawAICard);
-        boardDeckView.AddCardToBoardDeck(drawAICard, aiCCView, BoardCardOwner.AI, FinishAITurn);
+        boardDeckView.AddCardToBoardDeck(drawAICard, aiCCView, BoardCardOwner.AI, () =>
+        {
+            AIArtifactActivation(drawAICard);
+            FinishAITurn();
+        });
 
         // 3: Prepare the next card for the AI.
         UpdateAICurrentCard();
@@ -193,16 +210,21 @@ public class BattleTestManager : MonoBehaviour
             }
             else if (drawAICard.artifactEffect == ArtifactEffect.ReshuffleOpponentDeck)
             {
+                artifactEffectPending = true;
                 artifactUIController.ShowArtifactNotification(ArtifactEffect.ReshuffleOpponentDeck, () =>
                 {
-                    // artifactController.ReshuffleOpponentDeck(BoardCardOwner.AI);
+                    artifactController.ReshuffleOpponentDeck(
+                        BoardCardOwner.AI,
+                        () => artifactEffectPending = false);
                 });
             }
             else if (drawAICard.artifactEffect == ArtifactEffect.StealCard)
             {
+                artifactEffectPending = true;
                 artifactUIController.ShowArtifactNotification(ArtifactEffect.StealCard, () =>
                {
-                   // artifactController.StealOpponentCard(BoardCardOwner.AI);
+                   artifactController.StealOpponentCard(
+                BoardCardOwner.AI, () => artifactEffectPending = false);
                });
             }
         }
@@ -210,6 +232,12 @@ public class BattleTestManager : MonoBehaviour
 
     private void FinishAITurn()
     {
+        if (artifactEffectPending)
+        {
+            DOVirtual.DelayedCall(0.1f, FinishAITurn);
+            return;
+        }
+
         CheckAndResolveMatch(isPlayerWinner: false, (aiWin) =>
          {
              // 1: If the AI won, continue with the AI's turn.

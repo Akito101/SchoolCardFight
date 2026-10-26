@@ -57,6 +57,17 @@ public class AIDeckView : MonoBehaviour
             aiDeckView.Add(newCard);
         }
 
+        AnimateDeckShuffle(onAnimationComplete);
+    }
+
+    public void ReshuffleDeck(System.Action onAnimationComplete = null)
+    {
+        ShuffleDeck(aiDeckData);
+        AnimateDeckShuffle(onAnimationComplete);
+    }
+
+    private void AnimateDeckShuffle(System.Action onAnimationComplete)
+    {
         OverhandDeckShuffleAnimation(aiDeckView, () =>
         {
             RepositionStack();
@@ -64,7 +75,7 @@ public class AIDeckView : MonoBehaviour
         });
     }
 
-    private void ShuffleDeck(List<CardData> list)
+    private void ShuffleDeck<T>(List<T> list)
     {
         // Fisher-Yates shuffle - a standard, reliable way to randomize a list
         for (int i = list.Count - 1; i > 0; i--)
@@ -127,16 +138,6 @@ public class AIDeckView : MonoBehaviour
 
         currentCardView.SetCardFront(currentCardData.cardFrontSprite);
         currentCardView.SetCardArtifact(currentCardData);
-    }
-
-    private void ClearDeck()
-    {
-        foreach (CardView card in aiDeckView)
-        {
-            if (card != null) Destroy(card.gameObject);
-        }
-        aiDeckView.Clear();
-        aiDeckData.Clear();
     }
 
     private void RepositionStack()
@@ -232,5 +233,35 @@ public class AIDeckView : MonoBehaviour
         {
             onComplete?.Invoke();
         });
+    }
+
+    public CardData StolenCard()
+    {
+        if (aiDeckData.Count == 0) return null;
+
+        int randomIndex = Random.Range(0, aiDeckData.Count);
+        CardData stolenData = aiDeckData[randomIndex];
+        CardView stolenView = aiDeckView[randomIndex];
+
+        aiDeckData.RemoveAt(randomIndex);
+        aiDeckView.RemoveAt(randomIndex);
+
+        if (stolenView != null)
+        {
+            Destroy(stolenView.gameObject);
+        }
+
+        RepositionStack();
+        return stolenData;
+    }
+
+    private void ClearDeck()
+    {
+        foreach (CardView card in aiDeckView)
+        {
+            if (card != null) Destroy(card.gameObject);
+        }
+        aiDeckView.Clear();
+        aiDeckData.Clear();
     }
 }

@@ -7,6 +7,7 @@ public class ArtifactUIController : MonoBehaviour
     [SerializeField] private GameObject protectionActivationObj;
     [SerializeField] private GameObject reshuffleActivationObj;
     [SerializeField] private GameObject stealActivationObj;
+    [SerializeField] private GameObject stealArtifactWheel;
 
     private float displayDuration = 1f;
     private float fadeDuration = 0.5f;
