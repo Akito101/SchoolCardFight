@@ -343,7 +343,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 368706ad41c9c2549bd6ab017f5e99e1, type: 2}
   - {fileID: 11400000, guid: 3090626a9594e49e5ab20bbc86c718fc, type: 2}
   playerArtifactEffect: 3
-  aiArtifactEffect: 3
+  aiArtifactEffect: 2
 --- !u!114 &203046288
 MonoBehaviour:
   m_ObjectHideFlags: 0
