@@ -1612,7 +1612,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d227209dc1922842b7e3cd955590cd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
-  enemyName: Kaly
+  enemyName: Kalay
   minCards: 10
   button: {fileID: 334417820}
   label: {fileID: 0}
