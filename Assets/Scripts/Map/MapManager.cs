@@ -60,7 +60,7 @@ public class MapManager : MonoBehaviour
             return;
         }
 
-        PlayerProgress.SelectedLevel = index;
+        PlayerProgress.LevelSelected = index; ;
         SceneManager.LoadScene(battleScene);
     }
 
@@ -99,7 +99,7 @@ public class MapManager : MonoBehaviour
 
     public void OnDebugWinPressed()
     {
-        PlayerProgress.SelectedLevel = PlayerProgress.ClearedLevels; // ensure the next level is selected
+        PlayerProgress.LevelSelected = PlayerProgress.ClearedLevels; // ensure the next level is selected // ensure the next level is selected
         PlayerProgress.OnBattleFinished(true);
     }
 

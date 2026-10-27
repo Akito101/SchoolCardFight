@@ -17,6 +17,7 @@ public class BattleTestManager : MonoBehaviour
     [SerializeField] private BoardDeckView boardDeckView;
 
     [Header("UI References")]
+    [SerializeField] private BattleResultPanel resultPanel;
     [SerializeField] private ArtifactContainerController artifactContainerController;
     [SerializeField] private ArtifactUIController artifactUIController;
 
@@ -37,6 +38,7 @@ public class BattleTestManager : MonoBehaviour
     private bool artifactEffectPending;
     private Turn currentTurn = Turn.Player;
     private int initialDeckAnimationsPending;
+    private bool matchOver; //debug testing
 
     private void Awake()
     {
@@ -344,6 +346,7 @@ public class BattleTestManager : MonoBehaviour
 
                         isBusy = true;
                         SetSwipe(playerCCView, false);
+                        resultPanel.ShowResult(isPlayerWinner, aiCards);
                         return;
                     }
 
@@ -468,5 +471,24 @@ public class BattleTestManager : MonoBehaviour
             swipe.enabled = enable;
             if (enable) swipe.battleTestManager = this;
         }
+    }
+    // ---- Debug: instant win / lose (remove before release) ----
+    // In Play mode: click the three dots (⋮) at the top right of this component in the Inspector,
+    // then choose "Debug: Instant Win" or "Debug: Instant Lose".
+    [ContextMenu("Debug: Instant Win")]
+    private void DebugInstantWin() { ForceResult(true); }
+
+    [ContextMenu("Debug: Instant Lose")]
+    private void DebugInstantLose() { ForceResult(false); }
+
+    private void ForceResult(bool playerWon)
+    {
+        if (!Application.isPlaying) return;
+        if (matchOver) return;
+        matchOver = true;
+        isBusy = true;
+        SetSwipe(playerCCView, false);
+        DOTween.KillAll();   // stops pending AI draws, card animations and so on
+        resultPanel.ShowResult(playerWon, aiCards);
     }
 }

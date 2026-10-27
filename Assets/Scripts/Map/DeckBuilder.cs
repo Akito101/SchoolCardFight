@@ -6,8 +6,8 @@ using TMPro;
 public class DeckBuilder : MonoBehaviour
 {
     public CardDatabase database;
-    public MapManager map;                  // used to read the next level's requirement
-    public CollectionSlotView slotPrefab;   // same prefab the book uses
+    public MapManager map;
+    public CollectionSlotView slotPrefab;
     public Transform gridParent;
     public CardInspector inspector;
 
@@ -35,17 +35,55 @@ public class DeckBuilder : MonoBehaviour
         nextButton.onClick.AddListener(() => { page++; Refresh(); });
         deckTabButton.onClick.AddListener(() => SetTab(true));
         inventoryTabButton.onClick.AddListener(() => SetTab(false));
-        addAllButton.onClick.AddListener(() => { PlayerDeck.AddAllToDeck(); Refresh(); });
+        addAllButton.onClick.AddListener(() => { AddUpToLimit(); Refresh(); });
         inspectButton.onClick.AddListener(() => { inspectMode = !inspectMode; Refresh(); });
     }
 
-    // Runs every time the panel opens
     void OnEnable()
     {
         showingDeck = true;
         inspectMode = false;
         page = 0;
+        TrimToLimit();   // fixes decks saved before the limit existed
         Refresh();
+    }
+
+    // The deck size limit = the cards the next fight needs
+    private int MaxDeckSize()
+    {
+        if (map == null || map.levels == null || map.levels.Length == 0) return int.MaxValue;
+        int index = Mathf.Min(PlayerProgress.ClearedLevels, map.levels.Length - 1);   // all cleared: use the last level
+        return map.levels[index].minCards;
+    }
+
+    private void AddUpToLimit()
+    {
+        int max = MaxDeckSize();
+        foreach (CardCount c in new List<CardCount>(PlayerCollection.GetAll()))
+        {
+            int benched = PlayerDeck.GetBenched(c.cardName);
+            for (int i = 0; i < benched; i++)
+            {
+                if (PlayerDeck.TotalInDeck() >= max) return;
+                PlayerDeck.MoveToDeck(c.cardName);
+            }
+        }
+    }
+
+    private void TrimToLimit()
+    {
+        int max = MaxDeckSize();
+        if (PlayerDeck.TotalInDeck() <= max) return;
+
+        foreach (CardCount c in new List<CardCount>(PlayerCollection.GetAll()))
+        {
+            int inDeck = PlayerDeck.GetInDeck(c.cardName);
+            for (int i = 0; i < inDeck; i++)
+            {
+                if (PlayerDeck.TotalInDeck() <= max) return;
+                PlayerDeck.MoveToBench(c.cardName);
+            }
+        }
     }
 
     private void SetTab(bool deckTab)
@@ -63,8 +101,19 @@ public class DeckBuilder : MonoBehaviour
             return;
         }
 
-        if (showingDeck) PlayerDeck.MoveToBench(card.cardName);
-        else PlayerDeck.MoveToDeck(card.cardName);
+        if (showingDeck)
+        {
+            PlayerDeck.MoveToBench(card.cardName);
+        }
+        else
+        {
+            if (PlayerDeck.TotalInDeck() >= MaxDeckSize())
+            {
+                requirementText.text = $"Deck is full ({MaxDeckSize()} cards max). Remove a card first.";
+                return;   // no Refresh, so the message stays visible
+            }
+            PlayerDeck.MoveToDeck(card.cardName);
+        }
 
         Refresh();
     }
@@ -77,14 +126,12 @@ public class DeckBuilder : MonoBehaviour
             return;
         }
 
-        // clear the grid
         foreach (Transform child in gridParent)
         {
             child.gameObject.SetActive(false);
             Destroy(child.gameObject);
         }
 
-        // collect the cards for the current tab
         List<KeyValuePair<CardData, int>> entries = new List<KeyValuePair<CardData, int>>();
         foreach (CardCount c in PlayerCollection.GetAll())
         {
@@ -101,7 +148,6 @@ public class DeckBuilder : MonoBehaviour
             return byCategory != 0 ? byCategory : string.CompareOrdinal(a.Key.cardName, b.Key.cardName);
         });
 
-        // pages
         int totalPages = Mathf.Max(1, Mathf.CeilToInt(entries.Count / (float)cardsPerPage));
         page = Mathf.Clamp(page, 0, totalPages - 1);
 
@@ -118,17 +164,18 @@ public class DeckBuilder : MonoBehaviour
             if (btn != null) btn.onClick.AddListener(() => OnCardTapped(card));
         }
 
-        // texts and buttons
         pageText.text = $"{page + 1} / {totalPages}";
         prevButton.interactable = page > 0;
         nextButton.interactable = page < totalPages - 1;
 
-        deckTabButton.interactable = !showingDeck;          // grayed out = the tab you're on
+        deckTabButton.interactable = !showingDeck;
         inventoryTabButton.interactable = showingDeck;
         inspectButtonText.text = inspectMode ? "Locked: ON" : "Locked: OFF";
 
         int inDeck = PlayerDeck.TotalInDeck();
-        deckCountText.text = $"Deck: {inDeck} cards";
+        int max = MaxDeckSize();
+        deckCountText.text = max == int.MaxValue ? $"Deck: {inDeck} cards" : $"Deck: {inDeck} / {max} cards";
+        addAllButton.interactable = inDeck < max;   // grayed out when the deck is full
         UpdateRequirement(inDeck);
     }
 

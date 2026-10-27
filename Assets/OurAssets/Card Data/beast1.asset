@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: beast1
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: Naga
+  cardName: Naga3
   cardArt: {fileID: 21300000, guid: a27526e5b83644fb895b874404d73c9f, type: 3}
   category: 3
   stars: 3
