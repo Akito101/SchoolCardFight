@@ -36,6 +36,15 @@ public class MusicManager : MonoBehaviour
         instance.Setup();
     }
 
+    // Fades the music out. Call it when the win/lose panel opens.
+    public static void StopMusic()
+    {
+        if (instance == null) return;
+
+        foreach (Voice v in instance.voices) v.target = 0f;
+        instance.currentClip = null;   // so the next scene's song starts again, even if it's the same clip
+    }
+
     private void Setup()
     {
         for (int i = 0; i < voices.Length; i++)
