@@ -32,15 +32,43 @@ public static class PackRoller
             {
                 List<CardData> ofCategory = pool.FindAll(c => c.category == cat);
                 if (ofCategory.Count > 0 && result.Count < cardsPerPack)
-                    result.Add(ofCategory[Random.Range(0, ofCategory.Count)]);
+                    result.Add(PickWeighted(database, ofCategory));
             }
         }
 
         while (result.Count < cardsPerPack)
         {
-            result.Add(pool[Random.Range(0, pool.Count)]);
+            result.Add(PickWeighted(database, pool));
         }
 
         return result;
+    }
+
+    private static CardData PickWeighted(CardDatabase database, List<CardData> cards)
+    {
+        // only star levels that really have cards can be rolled
+        float[] weights = new float[4];   // index 1 to 3
+        float total = 0f;
+        int tier = 1;
+
+        for (int s = 1; s <= 3; s++)
+        {
+            bool hasCards = cards.Exists(c => Mathf.Clamp(c.stars, 1, 3) == s);
+            weights[s] = hasCards ? Mathf.Max(0f, database.WeightFor(s)) : 0f;
+            total += weights[s];
+            if (weights[s] > 0f) tier = s;
+        }
+
+        if (total <= 0f) return cards[Random.Range(0, cards.Count)];   // plain random if the rates are all 0
+
+        float roll = Random.Range(0f, total);
+        for (int s = 1; s <= 3; s++)
+        {
+            if (roll < weights[s]) { tier = s; break; }
+            roll -= weights[s];
+        }
+
+        List<CardData> inTier = cards.FindAll(c => Mathf.Clamp(c.stars, 1, 3) == tier);
+        return inTier[Random.Range(0, inTier.Count)];
     }
 }

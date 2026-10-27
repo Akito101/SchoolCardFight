@@ -27,8 +27,16 @@ public class CardData : ScriptableObject
     // The card's picture. Old cards saved as "cardFrontSprite" load into this slot too.
     [FormerlySerializedAs("cardFrontSprite")]
     public Sprite cardArt;
+
     public CardCategory category;
 
+    [Header("Rarity (match the stars drawn on the art)")]
+    [Range(1, 3)] public int stars = 1;
+
+    [Header("Optional sound when this card is revealed or played (meant for some 3-star cards)")]
+    public AudioClip signatureSfx;
+
+    // Set by the code that builds Artifact cards, not by hand
     [HideInInspector] public bool isArtifact;
     [HideInInspector] public ArtifactEffect artifactEffect;
 
