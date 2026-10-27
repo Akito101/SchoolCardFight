@@ -4,6 +4,12 @@ using DG.Tweening;
 
 public class AIDeckView : MonoBehaviour
 {
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource deckAudioSource;
+    [SerializeField] private AudioClip shuffleAudioClip;
+    [SerializeField] private AudioClip drawAudioClip;
+
+    [Header("Prefab Settings")]
     [SerializeField] private CardView cardPrefab;
 
     private readonly List<CardData> aiDeckData = new List<CardData>();
@@ -110,6 +116,8 @@ public class AIDeckView : MonoBehaviour
     {
         if (aiDeckData.Count == 0) return null;
 
+        PlayDrawSound();
+
         int topIndex = aiDeckData.Count - 1;
 
         CardData drawnCard = aiDeckData[topIndex];
@@ -171,6 +179,8 @@ public class AIDeckView : MonoBehaviour
             onComplete?.Invoke();
             return;
         }
+
+        PlayCardShuffleSound();
 
         Sequence seq = DOTween.Sequence();
 
@@ -261,6 +271,8 @@ public class AIDeckView : MonoBehaviour
             return null;
         }
 
+        PlayDrawSound();
+
         int randomIndex = matchingIndices[UnityEngine.Random.Range(0, matchingIndices.Count)];
         CardData stolenData = aiDeckData[randomIndex];
         CardView stolenView = aiDeckView[randomIndex];
@@ -285,5 +297,21 @@ public class AIDeckView : MonoBehaviour
         }
         aiDeckView.Clear();
         aiDeckData.Clear();
+    }
+
+    private void PlayCardShuffleSound()
+    {
+        if (deckAudioSource != null && shuffleAudioClip != null)
+        {
+            deckAudioSource.PlayOneShot(shuffleAudioClip);
+        }
+    }
+
+    private void PlayDrawSound()
+    {
+        if (deckAudioSource != null && drawAudioClip != null)
+        {
+            deckAudioSource.PlayOneShot(drawAudioClip);
+        }
     }
 }

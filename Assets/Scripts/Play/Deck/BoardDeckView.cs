@@ -11,13 +11,16 @@ public enum BoardCardOwner
 
 public class BoardDeckView : MonoBehaviour
 {
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource boardAudioSource;
+    [SerializeField] private AudioClip deckClaimAudioClip;
+
     private struct BoardCardEntry
     {
         public CardData cardData;
         public BoardCardOwner owner;
         public CardView cardView;
     }
-
     private readonly List<BoardCardEntry> boardEntries = new List<BoardCardEntry>();
 
     private Vector2 positionJitter = new Vector2(18f, 12f);
@@ -96,6 +99,8 @@ public class BoardDeckView : MonoBehaviour
             return;
         }
 
+        PlayReturnSound();
+
         List<CardData> wonCards = GetBoardDeck();
 
         Sequence returnSeq = DOTween.Sequence();
@@ -146,6 +151,8 @@ public class BoardDeckView : MonoBehaviour
     Vector2 aiDeckPosition,
     Action<List<CardData>, List<CardData>> onComplete)
     {
+        PlayReturnSound();
+
         List<CardData> playerCards = new List<CardData>();
         List<CardData> aiCards = new List<CardData>();
 
@@ -199,5 +206,11 @@ public class BoardDeckView : MonoBehaviour
         });
     }
 
-
+    private void PlayReturnSound()
+    {
+        if (boardAudioSource != null && deckClaimAudioClip != null)
+        {
+            boardAudioSource.PlayOneShot(deckClaimAudioClip);
+        }
+    }
 }
