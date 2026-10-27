@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Naga
   cardArt: {fileID: 21300000, guid: a27526e5b83644fb895b874404d73c9f, type: 3}
   category: 3
-  stars: 1
+  stars: 3
   signatureSfx: {fileID: 0}
   isArtifact: 0
   artifactEffect: 0

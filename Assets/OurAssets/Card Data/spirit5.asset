@@ -15,5 +15,7 @@ MonoBehaviour:
   cardName: Yok Ka So
   cardArt: {fileID: 21300000, guid: 60bb9a99213c941c7b4a29fdc024c629, type: 3}
   category: 0
+  stars: 2
+  signatureSfx: {fileID: 0}
   isArtifact: 0
   artifactEffect: 1

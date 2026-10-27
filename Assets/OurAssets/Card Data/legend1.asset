@@ -15,5 +15,7 @@ MonoBehaviour:
   cardName: Nga Tet Pyar
   cardArt: {fileID: 21300000, guid: ef05e54a21f024d768d35b729a4a4e26, type: 3}
   category: 1
+  stars: 3
+  signatureSfx: {fileID: 0}
   isArtifact: 0
   artifactEffect: 0

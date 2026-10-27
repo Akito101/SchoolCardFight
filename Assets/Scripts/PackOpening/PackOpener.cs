@@ -119,14 +119,19 @@ public class PackOpener : MonoBehaviour
         PlayerPacks.Use();
         openedThisVisit++;
 
-        // the cards are yours right away, so nothing is lost if the player leaves mid-animation
-        foreach (CardData c in pulled) PlayerCollection.AddCard(c.cardName);
+        // work out which cards the player has never had, BEFORE adding them
+        List<bool> isNew = new List<bool>();
+        foreach (CardData c in pulled)
+        {
+            isNew.Add(!PlayerCollection.IsDiscovered(c.cardName));
+            PlayerCollection.AddCard(c.cardName);
+        }
 
         UpdateText();
-        StartCoroutine(RipAndReveal(pulled));
+        StartCoroutine(RipAndReveal(pulled, isNew));
     }
 
-    private IEnumerator RipAndReveal(List<CardData> pulled)
+    private IEnumerator RipAndReveal(List<CardData> pulled, List<bool> isNew)
     {
         busy = true;
         packButton.interactable = false;
@@ -154,7 +159,7 @@ public class PackOpener : MonoBehaviour
         for (int i = 0; i < pulled.Count; i++)
         {
             PackCardView card = Instantiate(cardPrefab, cardsParent);
-            card.Setup(pulled[i], cardBackSprite);
+            card.Setup(pulled[i], cardBackSprite, isNew[i]);
             card.onFlipped = OnCardFlipped;
             card.transform.localScale = Vector3.zero;
             card.transform.DOScale(1f, 0.3f).SetDelay(i * 0.12f).SetEase(Ease.OutBack);
@@ -251,6 +256,6 @@ public class PackOpener : MonoBehaviour
         int left = PlayerPacks.Count;
         if (left > 0) packsLeftText.text = $"Packs left: {left}";
         else if (firstTime) packsLeftText.text = "All packs opened!";
-        else packsLeftText.text = "No packs to open.\nBuy more in the shop!";
+        else packsLeftText.text = "No packs left!";
     }
 }

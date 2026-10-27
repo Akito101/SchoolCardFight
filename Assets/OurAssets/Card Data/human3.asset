@@ -15,5 +15,7 @@ MonoBehaviour:
   cardName: Phoe Wa
   cardArt: {fileID: 21300000, guid: 53786dbbae34f456abeed065208d4edf, type: 3}
   category: 4
+  stars: 2
+  signatureSfx: {fileID: 0}
   isArtifact: 0
   artifactEffect: 0

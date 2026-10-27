@@ -15,5 +15,7 @@ MonoBehaviour:
   cardName: Myanmar Nat
   cardArt: {fileID: 21300000, guid: 4c747dab49de74ba79f82125bf451e6e, type: 3}
   category: 0
+  stars: 2
+  signatureSfx: {fileID: 0}
   isArtifact: 0
   artifactEffect: 1

@@ -15,5 +15,7 @@ MonoBehaviour:
   cardName: Thaman Kyar
   cardArt: {fileID: 21300000, guid: 20d059ddd52124775b4b34b70c20d289, type: 3}
   category: 3
+  stars: 1
+  signatureSfx: {fileID: 0}
   isArtifact: 0
   artifactEffect: 1
