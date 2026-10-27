@@ -8,8 +8,8 @@ public static class ProgressReset
         float sfx = GameAudio.SfxVolume;
 
         PlayerPrefs.DeleteAll();
-        PlayerCollection.Clear();
-        PlayerDeck.Clear();
+        if (typeof(PlayerCollection) != null) PlayerCollection.Clear();
+        if (typeof(PlayerDeck) != null) PlayerDeck.Clear();
 
         GameAudio.MusicVolume = music;
         GameAudio.SfxVolume = sfx;

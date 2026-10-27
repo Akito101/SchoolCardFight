@@ -134,7 +134,7 @@ public class DeckBuilder : MonoBehaviour
 
     private void UpdateRequirement(int inDeck)
     {
-        int cleared = PlayerProgress.LevelsCleared;
+        int cleared = PlayerProgress.ClearedLevels;
         if (map == null || cleared >= map.levels.Length)
         {
             requirementText.text = "";

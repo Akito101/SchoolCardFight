@@ -36,7 +36,7 @@ public class MapManager : MonoBehaviour
     {
         coinsText.text = PlayerProgress.Coins.ToString();
 
-        int cleared = PlayerProgress.LevelsCleared;
+        int cleared = PlayerProgress.ClearedLevels;
         for (int i = 0; i < levels.Length; i++)
         {
             bool unlocked = i <= cleared;
@@ -99,7 +99,7 @@ public class MapManager : MonoBehaviour
 
     public void OnDebugWinPressed()
     {
-        PlayerProgress.SelectedLevel = PlayerProgress.LevelsCleared;
+        PlayerProgress.SelectedLevel = PlayerProgress.ClearedLevels; // ensure the next level is selected
         PlayerProgress.OnBattleFinished(true);
     }
 

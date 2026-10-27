@@ -123,7 +123,7 @@ public class DeckView : MonoBehaviour
         categoryText.text = string.Join("  |  ", parts);
 
         // what the next fight needs
-        int cleared = PlayerProgress.LevelsCleared;
+        int cleared = PlayerProgress.ClearedLevels;
         if (map != null && cleared < map.levels.Length)
         {
             LevelNode next = map.levels[cleared];
