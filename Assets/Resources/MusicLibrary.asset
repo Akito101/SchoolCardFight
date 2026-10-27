@@ -27,7 +27,7 @@ MonoBehaviour:
     - RockPaperScissors
   - name: Battle
     clip: {fileID: 8300000, guid: 7b4fa6d48f287f748814f5d499ea662b, type: 3}
-    volume: 0.9
+    volume: 0.6
     scenes:
     - VNIntro
     - TestGamePlay
