@@ -50,6 +50,14 @@ public class PlayerDeckView : MonoBehaviour
 
     private void RebuildDeckViews(System.Action onAnimationComplete)
     {
+        // 1. Destroy any existing card views so old card views don't linger
+        foreach (CardView card in playerDeckView)
+        {
+            if (card != null) Destroy(card.gameObject);
+        }
+        playerDeckView.Clear();
+
+        // 2. Instantiate new views matching the current deck data
         foreach (CardData data in playerDeckData)
         {
             CardView newCard = Instantiate(cardPrefab, playerDeckTransform);
@@ -77,19 +85,24 @@ public class PlayerDeckView : MonoBehaviour
 
     private void ShuffleDeck<T>(List<T> list)
     {
-        // Fisher-Yates shuffle - a standard, reliable way to randomize a list
-        for (int i = list.Count - 1; i > 0; i--)
+        if (list == null || list.Count <= 1) return;
+
+        // Perform Fisher-Yates shuffle 3 times for extra data randomization
+        for (int shufflePass = 0; shufflePass < 3; shufflePass++)
         {
-            int randomIndex = Random.Range(0, i + 1);
-            (list[i], list[randomIndex]) = (list[randomIndex], list[i]);
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int randomIndex = Random.Range(0, i + 1);
+                (list[i], list[randomIndex]) = (list[randomIndex], list[i]);
+            }
         }
     }
 
     private void InsertArtifact(List<CardData> list, ArtifactEffect artifactType)
     {
-        if (list == null || list.Count == 0) return;
+        if (list == null || list.Count < 5) return;
 
-        int randomIndex = Random.Range(0, list.Count);
+        int randomIndex = Random.Range(4, list.Count);
 
         CardData cardCopy = Instantiate(list[randomIndex]);
         cardCopy.isArtifact = true;
@@ -182,7 +195,7 @@ public class PlayerDeckView : MonoBehaviour
         seq.Append(gatherSeq);
 
         // 2: Short pause for better visual effect
-        seq.AppendInterval(0.05f);
+        seq.AppendInterval(0.1f);
 
         Sequence shuffleSeq = DOTween.Sequence();
         int shuffleIterations = 3;
@@ -223,7 +236,7 @@ public class PlayerDeckView : MonoBehaviour
             }
 
             // 3.3: Short pause for better visual effect
-            iterationSeq.AppendInterval(0.05f);
+            iterationSeq.AppendInterval(0.1f);
 
             shuffleSeq.Append(iterationSeq);
         }

@@ -187,7 +187,7 @@ public class BoardDeckView : MonoBehaviour
             cardSeq.Append(cardTrans.DOScaleX(1f, 0.3f).SetEase(Ease.OutQuad));
 
             // 3: Move decks to the owner's deck position
-            cardSeq.Append(cardTrans.DOAnchorPos(targetPosition, 0.35f).SetEase(Ease.InBack));
+            cardSeq.Append(cardTrans.DOAnchorPos(targetPosition, 0.45f).SetEase(Ease.InBack));
 
             returnSeq.Join(cardSeq);
         }

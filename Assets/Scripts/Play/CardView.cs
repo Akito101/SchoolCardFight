@@ -114,7 +114,7 @@ public class CardView : MonoBehaviour
         seq.Append(currentCardTransform.DOScaleX(1.5f, 0.3f).SetEase(Ease.OutQuad));
 
         // 3. Pause for a split second so the player can look at the revealed card
-        seq.AppendInterval(0.6f);
+        seq.AppendInterval(0.4f);
 
         // 4. Apply the final randomized rotation and scale back down to normal size 
         seq.Append(currentCardTransform.DOAnchorPos(cardDestination, 0.35f).SetEase(Ease.OutQuad));

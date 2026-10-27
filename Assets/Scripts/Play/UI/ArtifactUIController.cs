@@ -9,8 +9,6 @@ public class ArtifactUIController : MonoBehaviour
     [SerializeField] private GameObject stealActivationObj;
     [SerializeField] private WheelClickDetector wheelClickDetector;
 
-    private float displayDuration = 1f;
-    private float fadeDuration = 0.5f;
     public bool IsPlayingNotification { get; private set; } = false;
     private Sequence currentSequence;
 
@@ -21,15 +19,14 @@ public class ArtifactUIController : MonoBehaviour
 
     public void ShowStealArtifactWheel(System.Action<CardCategory> onCategoryChosen)
     {
-        if (wheelClickDetector != null)
+        if (wheelClickDetector == null)
         {
-            wheelClickDetector.ShowWheel(onCategoryChosen);
-        }
-        else
-        {
-            Debug.LogWarning("WheelClickDetector reference is missing in ArtifactUIController.");
+            Debug.LogError("Cannot show steal artifact wheel because the WheelClickDetector reference is missing.");
             onCategoryChosen?.Invoke(CardCategory.Humans);
+            return;
         }
+
+        wheelClickDetector.ShowWheel(onCategoryChosen);
     }
 
     public void ShowArtifactNotification(ArtifactEffect effect, System.Action onComplete = null)
@@ -90,8 +87,8 @@ public class ArtifactUIController : MonoBehaviour
     {
         Sequence sequence = DOTween.Sequence();
         sequence.Append(targetObj.transform.DOScale(Vector3.one, 0.35f).SetEase(Ease.OutBack));
-        sequence.AppendInterval(displayDuration);
-        sequence.Append(canvasGroup.DOFade(0f, fadeDuration));
+        sequence.AppendInterval(1f);
+        sequence.Append(canvasGroup.DOFade(0f, 0.5f));
         sequence.OnComplete(() =>
         {
             targetObj.SetActive(false);
@@ -111,7 +108,6 @@ public class ArtifactUIController : MonoBehaviour
 
     private void HideAll()
     {
-        // 1: Hide every artifact notification.
         HideNotificationObject(protectionActivationObj);
         HideNotificationObject(reshuffleActivationObj);
         HideNotificationObject(stealActivationObj);

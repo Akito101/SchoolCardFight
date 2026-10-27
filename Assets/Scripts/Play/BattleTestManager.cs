@@ -112,6 +112,12 @@ public class BattleTestManager : MonoBehaviour
     {
         if (drawPlayerCard.isArtifact)
         {
+            if (artifactController == null)
+            {
+                Debug.LogError("Cannot process Player artifact activation because the ArtifactController reference is missing.");
+                return;
+            }
+
             if (drawPlayerCard.artifactEffect == ArtifactEffect.Protection)
             {
                 artifactController.ActivateProtection(BoardCardOwner.Player);
@@ -204,6 +210,12 @@ public class BattleTestManager : MonoBehaviour
     {
         if (drawAICard.isArtifact)
         {
+            if (artifactController == null)
+            {
+                Debug.LogError("Cannot process AI artifact activation because the ArtifactController reference is missing.");
+                return;
+            }
+
             if (drawAICard.artifactEffect == ArtifactEffect.Protection)
             {
                 artifactController.ActivateProtection(BoardCardOwner.AI);
@@ -322,7 +334,7 @@ public class BattleTestManager : MonoBehaviour
                         ? aiDeckView.GetCardCount()
                         : playerDeckView.GetCardCount();
 
-                    if (loserCardCount <= 4)
+                    if (loserCardCount <= 3)
                     {
                         string realWinner = isPlayerWinner ? "Player" : "AI";
 
@@ -360,6 +372,8 @@ public class BattleTestManager : MonoBehaviour
 
     private void ReturnBoardCardsToOwnerDecks(Action onComplete)
     {
+        artifactController.ResetAllProtection();
+
         // 1: Return each board card to its owner's deck.
         Vector2 playerDeckPosition =
             playerDeckView.GetComponent<RectTransform>().anchoredPosition;

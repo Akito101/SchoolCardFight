@@ -14,26 +14,26 @@ public class ArtifactController : MonoBehaviour
     [SerializeField] private AIDeckView aiDeckView;
     [SerializeField] private RectTransform boardTransform;
 
-    private bool playerHasProtection = false;
-    private bool aiHasProtection = false;
+    private int playerProtectionCount = 0;
+    private int aiProtectionCount = 0;
 
     public void ActivateProtection(BoardCardOwner owner)
     {
         if (owner == BoardCardOwner.Player)
         {
-            playerHasProtection = true;
+            playerProtectionCount++;
         }
         else if (owner == BoardCardOwner.AI)
         {
-            aiHasProtection = true;
+            aiProtectionCount++;
         }
     }
 
     public bool ConsumeProtection(BoardCardOwner defender, Action onNotificationComplete = null)
     {
-        if (defender == BoardCardOwner.Player && playerHasProtection)
+        if (defender == BoardCardOwner.Player && playerProtectionCount > 0)
         {
-            playerHasProtection = false;
+            playerProtectionCount--;
 
             if (artifactUIController != null)
             {
@@ -43,9 +43,9 @@ public class ArtifactController : MonoBehaviour
             return true;
         }
 
-        if (defender == BoardCardOwner.AI && aiHasProtection)
+        if (defender == BoardCardOwner.AI && aiProtectionCount > 0)
         {
-            aiHasProtection = false;
+            aiProtectionCount--;
 
             if (artifactUIController != null)
             {
@@ -59,14 +59,20 @@ public class ArtifactController : MonoBehaviour
 
     public void ResetProtectionOnMatchWinner(BoardCardOwner winner)
     {
-        if (winner == BoardCardOwner.Player && playerHasProtection)
+        if (winner == BoardCardOwner.Player)
         {
-            playerHasProtection = false;
+            playerProtectionCount = 0;
         }
-        else if (winner == BoardCardOwner.AI && aiHasProtection)
+        else if (winner == BoardCardOwner.AI)
         {
-            aiHasProtection = false;
+            aiProtectionCount = 0;
         }
+    }
+
+    public void ResetAllProtection()
+    {
+        playerProtectionCount = 0;
+        aiProtectionCount = 0;
     }
 
     public void ReshuffleOpponentDeck(BoardCardOwner caller, Action onComplete = null)
@@ -127,17 +133,22 @@ public class ArtifactController : MonoBehaviour
         RectTransform receivingDeckTransform;
         RectTransform targetDeckTransform;
 
+        if (playerDeckView == null || aiDeckView == null)
+        {
+            Debug.LogError($"Cannot execute steal operation for {stealingOwner} because one or both deck references (PlayerDeckView / AIDeckView) are missing.");
+            onComplete?.Invoke();
+            return;
+        }
+
         // 1. Pick random card from opponent deck data
         if (stealingOwner == BoardCardOwner.Player)
         {
-            if (aiDeckView == null) { onComplete?.Invoke(); return; }
             stolenData = aiDeckView.StolenCardByCategory(category);
             targetDeckTransform = aiDeckView.GetComponent<RectTransform>();
             receivingDeckTransform = playerDeckView.GetComponent<RectTransform>();
         }
         else
         {
-            if (playerDeckView == null) { onComplete?.Invoke(); return; }
             stolenData = playerDeckView.StolenCard();
             targetDeckTransform = playerDeckView.GetComponent<RectTransform>();
             receivingDeckTransform = aiDeckView.GetComponent<RectTransform>();
@@ -166,16 +177,21 @@ public class ArtifactController : MonoBehaviour
         stealSeq.Append(cardTransform.DOMove(boardTransform.position, 0.4f).SetEase(Ease.OutQuad));
         stealSeq.Join(cardTransform.DOScale(Vector3.one * 1.4f, 0.4f).SetEase(Ease.OutQuad));
 
-        // Flip effect: Compress width to 0 (Edge-on)
+        // Flip and card face up 
         stealSeq.Append(cardTransform.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
         stealSeq.AppendCallback(() => stolenCard.ShowFaceUp());
         stealSeq.Append(cardTransform.DOScaleX(1.5f, 0.3f).SetEase(Ease.OutQuad));
 
         //  Short pause for better visual effect
-        stealSeq.AppendInterval(0.1f);
+        stealSeq.AppendInterval(0.4f);
+
+        // Flip and card face down 
+        stealSeq.Append(cardTransform.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
+        stealSeq.AppendCallback(() => stolenCard.ShowFaceDown());
+        stealSeq.Append(cardTransform.DOScaleX(1.5f, 0.3f).SetEase(Ease.OutQuad));
 
         // Move to artifact owner deck AND scale down to original size
-        stealSeq.Append(cardTransform.DOMove(receivingDeckTransform.position, 0.3f).SetEase(Ease.InBack));
+        stealSeq.Append(cardTransform.DOMove(receivingDeckTransform.position, 0.45f).SetEase(Ease.InBack));
         stealSeq.Join(cardTransform.DOScale(1f, 0.3f).SetEase(Ease.InBack));
 
         // 4. Cleanup and Reshuffle destination deck
