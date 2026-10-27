@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 777741431ab2aa243b0888ff07ee5a7f, type: 3}
+  m_Name: MusicLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::MusicLibrary
+  tracks:
+  - name: Main Menu
+    clip: {fileID: 8300000, guid: ffcc90ccc202d8749a5d5d5b9c0989a2, type: 3}
+    volume: 0.9
+    scenes:
+    - MainMenu
+  - name: Map
+    clip: {fileID: 8300000, guid: 879eaee827ee01843aa39e10092ad815, type: 3}
+    volume: 0.9
+    scenes:
+    - Map
+    - MemoryMatch
+    - RockPaperScissors
+  - name: Battle
+    clip: {fileID: 8300000, guid: 7b4fa6d48f287f748814f5d499ea662b, type: 3}
+    volume: 0.9
+    scenes:
+    - VNIntro
+    - TestGamePlay
+  fadeSeconds: 1

@@ -6,7 +6,7 @@ using DG.Tweening;
 public class CardSlotView : MonoBehaviour
 {
     public Image artImage;
-    public TextMeshProUGUI nameText;
+    public TextMeshProUGUI nameText;   // optional: leave empty if the card has no name text
 
     public void Setup(CardData data, float delay)
     {
@@ -21,7 +21,7 @@ public class CardSlotView : MonoBehaviour
             artImage.color = new Color(0.7f, 0.7f, 0.9f);
         }
 
-        nameText.text = $"{data.cardName}\n({data.category})";
+        if (nameText != null) nameText.text = $"{data.cardName}\n({data.category})";
 
         transform.localScale = Vector3.zero;
         transform.DOScale(1f, 0.3f).SetDelay(delay).SetEase(Ease.OutBack);
