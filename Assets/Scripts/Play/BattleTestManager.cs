@@ -29,6 +29,10 @@ public class BattleTestManager : MonoBehaviour
     [SerializeField] private ArtifactEffect playerArtifactEffect = ArtifactEffect.Protection;
     [SerializeField] private ArtifactEffect aiArtifactEffect = ArtifactEffect.None;
 
+    [Header("Real decks")]
+    [SerializeField] private CardDatabase database;      // same CardDatabase asset the DeckBuilder uses
+    [SerializeField] private bool usePlayerDeck = true;  // untick to keep the placeholder list for testing
+
     private ArtifactController artifactController;
     private CardView playerCCView; // player current card view
     private CardView aiCCView; // ai current card view
@@ -38,7 +42,8 @@ public class BattleTestManager : MonoBehaviour
     private bool artifactEffectPending;
     private Turn currentTurn = Turn.Player;
     private int initialDeckAnimationsPending;
-    private bool matchOver; //debug testing
+    private List<CardData> enemyStartingDeck;   // untouched copy of the enemy deck, used for the reward
+    private bool matchOver;
 
     private void Awake()
     {
@@ -47,6 +52,25 @@ public class BattleTestManager : MonoBehaviour
 
     private void Start()
     {
+        // 0: Load this level's enemy deck (falls back to the placeholder list if the level has none).
+        LevelRewards rewards = Resources.Load<LevelRewards>("LevelRewards");
+        LevelRewards.Reward level = rewards != null ? rewards.Get(PlayerProgress.LevelSelected) : null;
+        if (level != null && level.enemyDeck != null && level.enemyDeck.Count > 0)
+        {
+            aiCards = new List<CardData>(level.enemyDeck);
+            aiArtifactEffect = level.enemyArtifact;
+        }
+
+        enemyStartingDeck = new List<CardData>(aiCards);
+
+        // 0: Load the player's saved deck (falls back to the placeholder list if it is empty).
+        if (usePlayerDeck && database != null)
+        {
+            List<CardData> built = BuildPlayerDeckFromSave();
+            if (built.Count > 0) playerCards = built;
+            else Debug.LogWarning("BattleTestManager: saved deck is empty, using the placeholder deck.");
+        }
+
         // 1: Reset the board and wait for both decks to finish their opening animations.
         isBusy = true;
         boardDeckView.ClearBoard();
@@ -66,9 +90,23 @@ public class BattleTestManager : MonoBehaviour
         artifactContainerController.UpdateSpellUI(playerArtifactEffect);
     }
 
+    private List<CardData> BuildPlayerDeckFromSave()
+    {
+        List<CardData> list = new List<CardData>();
+        foreach (CardCount c in PlayerCollection.GetAll())
+        {
+            CardData card = database.GetByName(c.cardName);
+            if (card == null) continue;
+
+            int n = PlayerDeck.GetInDeck(c.cardName);   // copies in the deck, not benched
+            for (int i = 0; i < n; i++) list.Add(card);
+        }
+        return list;
+    }
+
     private void OnInitialDeckAnimationComplete()
     {
-        // 1: Condition to ensure animtion run only once for both decks.
+        // 1: Condition to ensure animation runs only once for both decks.
         initialDeckAnimationsPending--;
         if (initialDeckAnimationsPending > 0) return;
 
@@ -88,7 +126,7 @@ public class BattleTestManager : MonoBehaviour
 
     public void DrawNextCard()
     {
-        if (currentTurn != Turn.Player || isBusy) return;
+        if (matchOver || currentTurn != Turn.Player || isBusy) return;
 
         // 1: Draw and validate the player's next card.
         CardData drawPlayerCard = playerDeckView.DrawCard();
@@ -138,16 +176,18 @@ public class BattleTestManager : MonoBehaviour
             {
                 artifactEffectPending = true;
                 artifactUIController.ShowArtifactNotification(ArtifactEffect.StealCard, () =>
-               {
-                   artifactController.StealOpponentCard(
-                BoardCardOwner.Player, () => artifactEffectPending = false);
-               });
+                {
+                    artifactController.StealOpponentCard(
+                        BoardCardOwner.Player, () => artifactEffectPending = false);
+                });
             }
         }
     }
 
     private void FinishPlayerTurn()
     {
+        if (matchOver) return;
+
         if (artifactEffectPending)
         {
             DOVirtual.DelayedCall(0.1f, FinishPlayerTurn);
@@ -175,6 +215,8 @@ public class BattleTestManager : MonoBehaviour
 
     private void DrawAICard()
     {
+        if (matchOver) return;
+
         // 1: Draw the AI's next card and return the board cards if its deck is empty.
         CardData drawAICard = aiDeckView.DrawCard();
         if (drawAICard == null)
@@ -188,9 +230,9 @@ public class BattleTestManager : MonoBehaviour
                 isBusy = false;
 
                 DOVirtual.DelayedCall(0.4f, () =>
-               {
-                   DrawAICard();
-               });
+                {
+                    DrawAICard();
+                });
             });
 
             return;
@@ -236,16 +278,18 @@ public class BattleTestManager : MonoBehaviour
             {
                 artifactEffectPending = true;
                 artifactUIController.ShowArtifactNotification(ArtifactEffect.StealCard, () =>
-               {
-                   artifactController.StealOpponentCard(
-                BoardCardOwner.AI, () => artifactEffectPending = false);
-               });
+                {
+                    artifactController.StealOpponentCard(
+                        BoardCardOwner.AI, () => artifactEffectPending = false);
+                });
             }
         }
     }
 
     private void FinishAITurn()
     {
+        if (matchOver) return;
+
         if (artifactEffectPending)
         {
             DOVirtual.DelayedCall(0.1f, FinishAITurn);
@@ -253,35 +297,35 @@ public class BattleTestManager : MonoBehaviour
         }
 
         CheckAndResolveMatch(isPlayerWinner: false, (aiWin) =>
-         {
-             // 1: If the AI won, continue with the AI's turn.
-             if (aiWin)
-             {
-                 DOVirtual.DelayedCall(0.4f, () =>
+        {
+            // 1: If the AI won, continue with the AI's turn.
+            if (aiWin)
+            {
+                DOVirtual.DelayedCall(0.4f, () =>
                 {
                     DrawAICard();
                 });
-             }
-             // 2: If the AI didn't win, check if the player has cards left and continue with the player's turn.
-             else
-             {
-                 if (playerDeckView.GetCardCount() == 0)
-                 {
-                     isBusy = true;
-                     SetSwipe(playerCCView, false);
+            }
+            // 2: If the AI didn't win, check if the player has cards left and continue with the player's turn.
+            else
+            {
+                if (playerDeckView.GetCardCount() == 0)
+                {
+                    isBusy = true;
+                    SetSwipe(playerCCView, false);
 
-                     ReturnBoardCardsToOwnerDecks(() =>
-                     {
-                         RestoreMissingCards();
-                         SetPlayerTurn();
-                     });
-                 }
-                 else
-                 {
-                     SetPlayerTurn();
-                 }
-             }
-         });
+                    ReturnBoardCardsToOwnerDecks(() =>
+                    {
+                        RestoreMissingCards();
+                        SetPlayerTurn();
+                    });
+                }
+                else
+                {
+                    SetPlayerTurn();
+                }
+            }
+        });
     }
 
     private void CheckAndResolveMatch(bool isPlayerWinner, Action<bool> onMatchResolved)
@@ -332,6 +376,8 @@ public class BattleTestManager : MonoBehaviour
                 // 7: Check if the match is truly over.
                 void CheckTrueWinner()
                 {
+                    if (matchOver) return;
+
                     int loserCardCount = isPlayerWinner
                         ? aiDeckView.GetCardCount()
                         : playerDeckView.GetCardCount();
@@ -346,7 +392,8 @@ public class BattleTestManager : MonoBehaviour
 
                         isBusy = true;
                         SetSwipe(playerCCView, false);
-                        resultPanel.ShowResult(isPlayerWinner, aiCards);
+                        matchOver = true;
+                        resultPanel.ShowResult(isPlayerWinner, enemyStartingDeck);
                         return;
                     }
 
@@ -363,8 +410,8 @@ public class BattleTestManager : MonoBehaviour
                 else
                 {
                     aiDeckView.AddCardsAndReshuffle(
-                   boardDeck,
-                   CheckTrueWinner);
+                    boardDeck,
+                    CheckTrueWinner);
                 }
             });
             return;
@@ -387,7 +434,7 @@ public class BattleTestManager : MonoBehaviour
         boardDeckView.ReturnBoardCardsToOwnerDecks(
             playerDeckPosition,
             aiDeckPosition,
-            (playerCards, aiCards) =>
+            (returnedPlayerCards, returnedAICards) =>
             {
                 // 2: Reshuffle both decks and continue after both operations finish.
                 int reshufflesPending = 2;
@@ -403,11 +450,11 @@ public class BattleTestManager : MonoBehaviour
                 }
 
                 playerDeckView.AddCardsAndReshuffle(
-                playerCards,
+                returnedPlayerCards,
                 FinishReshuffle);
 
                 aiDeckView.AddCardsAndReshuffle(
-                aiCards,
+                returnedAICards,
                 FinishReshuffle);
             }
         );
@@ -472,6 +519,7 @@ public class BattleTestManager : MonoBehaviour
             if (enable) swipe.battleTestManager = this;
         }
     }
+
     // ---- Debug: instant win / lose (remove before release) ----
     // In Play mode: click the three dots (⋮) at the top right of this component in the Inspector,
     // then choose "Debug: Instant Win" or "Debug: Instant Lose".
@@ -489,6 +537,6 @@ public class BattleTestManager : MonoBehaviour
         isBusy = true;
         SetSwipe(playerCCView, false);
         DOTween.KillAll();   // stops pending AI draws, card animations and so on
-        resultPanel.ShowResult(playerWon, aiCards);
+        resultPanel.ShowResult(playerWon, enemyStartingDeck);
     }
 }
