@@ -15,5 +15,7 @@ MonoBehaviour:
   cardName: Developers
   cardArt: {fileID: 21300000, guid: 466b32bab4bbd41debbd36ef7060ba65, type: 3}
   category: 4
+  stars: 3
+  signatureSfx: {fileID: 0}
   isArtifact: 0
   artifactEffect: 0

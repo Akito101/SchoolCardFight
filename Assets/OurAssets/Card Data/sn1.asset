@@ -15,5 +15,7 @@ MonoBehaviour:
   cardName: Ma Phae Wah
   cardArt: {fileID: 21300000, guid: c29124ad2035248acb49d3b6fd366706, type: 3}
   category: 2
+  stars: 2
+  signatureSfx: {fileID: 0}
   isArtifact: 0
   artifactEffect: 0

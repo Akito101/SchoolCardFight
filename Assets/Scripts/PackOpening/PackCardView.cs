@@ -9,26 +9,30 @@ public class PackCardView : MonoBehaviour
     public Button button;                // the Button on the root
     public TextMeshProUGUI nameText;     // optional
     public GameObject glow;              // optional, shown on 3-star cards
+    public GameObject newBadge;          // optional, the "NEW" tag
 
     public bool IsFlipped { get; private set; }
     public System.Action<PackCardView> onFlipped;
 
     private CardData data;
     private Sprite backSprite;
+    private bool isNew;
 
     void Awake()
     {
         button.onClick.AddListener(Flip);
     }
 
-    public void Setup(CardData card, Sprite back)
+    public void Setup(CardData card, Sprite back, bool newCard = false)
     {
         data = card;
         backSprite = back;
+        isNew = newCard;
         IsFlipped = false;
         transform.localScale = Vector3.one;
         button.interactable = false;   // the pack opener turns tapping on once the cards have popped in
         if (glow != null) glow.SetActive(false);
+        if (newBadge != null) newBadge.SetActive(false);
         if (nameText != null) nameText.text = "";
         ShowBack();
     }
@@ -87,6 +91,13 @@ public class PackCardView : MonoBehaviour
 
         if (nameText != null) nameText.text = data.cardName;
         if (glow != null && data.stars >= 3) glow.SetActive(true);
+
+        if (newBadge != null && isNew)
+        {
+            newBadge.SetActive(true);
+            newBadge.transform.localScale = Vector3.zero;
+            newBadge.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+        }
 
         GameAudio.PlaySfx(data.signatureSfx);   // plays nothing if the card has no sound
     }
