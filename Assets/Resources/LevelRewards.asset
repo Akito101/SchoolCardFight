@@ -13,23 +13,31 @@ MonoBehaviour:
   m_Name: LevelRewards
   m_EditorClassIdentifier: Assembly-CSharp::LevelRewards
   levels:
-  - enemyName: Kalay
-    stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
+  - stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
     coins: 50
     coinsOnLose: 25
+    deckSize: 8
     artifact: 1
-  - enemyName: Shae Ka Kg
-    stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
+    enemyDeck: []
+    enemyArtifact: 0
+  - stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
     coins: 50
     coinsOnLose: 25
+    deckSize: 15
     artifact: 3
-  - enemyName: Monitor
-    stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
+    enemyDeck: []
+    enemyArtifact: 0
+  - stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
     coins: 50
     coinsOnLose: 25
+    deckSize: 20
     artifact: 2
-  - enemyName: Saya Ma
-    stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
+    enemyDeck: []
+    enemyArtifact: 0
+  - stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
     coins: 50
     coinsOnLose: 25
+    deckSize: 25
     artifact: 0
+    enemyDeck: []
+    enemyArtifact: 0

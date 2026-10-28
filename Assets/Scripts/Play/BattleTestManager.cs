@@ -68,6 +68,17 @@ public class BattleTestManager : MonoBehaviour
         // 0: Load the player's saved deck (falls back to the placeholder list if it is empty).
         if (usePlayerDeck && database != null)
         {
+            // The first time a level is played, the deck is exactly this level's size.
+            // A replay keeps the current deck, which is already sized for the next level.
+            bool isReplay = PlayerProgress.LevelSelected < PlayerProgress.ClearedLevels;
+            if (!isReplay && level != null && level.deckSize > 0)
+            {
+                DeckLimit.TrimTo(level.deckSize, database);
+
+                if (PlayerDeck.TotalInDeck() < level.deckSize)
+                    Debug.LogWarning($"BattleTestManager: the deck has {PlayerDeck.TotalInDeck()} cards but this level needs {level.deckSize}.");
+            }
+
             List<CardData> built = BuildPlayerDeckFromSave();
             if (built.Count > 0) playerCards = built;
             else Debug.LogWarning("BattleTestManager: saved deck is empty, using the placeholder deck.");
