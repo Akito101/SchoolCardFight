@@ -167,34 +167,30 @@ public class ArtifactController : MonoBehaviour
         RectTransform cardTransform = stolenCard.GetComponent<RectTransform>();
         cardTransform.position = targetDeckTransform.position;
         cardTransform.localScale = Vector3.one;
-
         cardTransform.SetAsLastSibling();
+
+        List<CardView> singleCardList = new List<CardView> { stolenCard };
+        Vector3 boardCenterPos = boardTransform.anchoredPosition;
 
         // 3. Steal Animation Sequence
         Sequence stealSeq = DOTween.Sequence();
 
         // Pull to board center AND scale up at the same time
-        stealSeq.Append(cardTransform.DOMove(boardTransform.position, 0.4f).SetEase(Ease.OutQuad));
-        stealSeq.Join(cardTransform.DOScale(Vector3.one * 1.4f, 0.4f).SetEase(Ease.OutQuad));
+        Sequence pullToCenter = DOTween.Sequence();
+        pullToCenter.Join(cardTransform.DOAnchorPos(boardCenterPos, 0.4f).SetEase(Ease.OutQuad));
+        pullToCenter.Join(cardTransform.DOScale(Vector3.one * 1.4f, 0.4f).SetEase(Ease.OutQuad));
+        stealSeq.Append(pullToCenter);
 
-        // Flip and card face up 
-        stealSeq.Append(cardTransform.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
-        stealSeq.AppendCallback(() => stolenCard.ShowFaceUp());
-        stealSeq.Append(cardTransform.DOScaleX(1.5f, 0.3f).SetEase(Ease.OutQuad));
-
-        //  Short pause for better visual effect
+        stealSeq.Append(AnimationController.Instance.FlipFaceUp(singleCardList, 1.5f));
         stealSeq.AppendInterval(0.4f);
-
-        // Flip and card face down 
-        stealSeq.Append(cardTransform.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
-        stealSeq.AppendCallback(() => stolenCard.ShowFaceDown());
-        stealSeq.Append(cardTransform.DOScaleX(1.5f, 0.3f).SetEase(Ease.OutQuad));
+        stealSeq.Append(AnimationController.Instance.FlipFaceDown(singleCardList, 1.5f));
 
         // Move to artifact owner deck AND scale down to original size
-        stealSeq.Append(cardTransform.DOMove(receivingDeckTransform.position, 0.45f).SetEase(Ease.InBack));
-        stealSeq.Join(cardTransform.DOScale(1f, 0.3f).SetEase(Ease.InBack));
+        Sequence deliverSeq = DOTween.Sequence();
+        deliverSeq.Join(cardTransform.DOAnchorPos(receivingDeckTransform.anchoredPosition, 0.45f).SetEase(Ease.InBack));
+        deliverSeq.Join(cardTransform.DOScale(Vector3.one, 0.3f).SetEase(Ease.InBack));
+        stealSeq.Append(deliverSeq);
 
-        // 4. Cleanup and Reshuffle destination deck
         stealSeq.OnComplete(() =>
         {
             Destroy(stolenCard.gameObject);

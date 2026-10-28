@@ -20,6 +20,7 @@ public class BattleTestManager : MonoBehaviour
     [SerializeField] private BattleResultPanel resultPanel;
     [SerializeField] private ArtifactContainerController artifactContainerController;
     [SerializeField] private ArtifactUIController artifactUIController;
+    [SerializeField] private DialogueController dialogueController;
 
     [Header("Cards Settings")]
     [SerializeField] private List<CardData> playerCards;
@@ -42,6 +43,7 @@ public class BattleTestManager : MonoBehaviour
     private bool artifactEffectPending;
     private Turn currentTurn = Turn.Player;
     private int initialDeckAnimationsPending;
+    private bool isMixAndDistributePendingOrActive;
     private List<CardData> enemyStartingDeck;   // untouched copy of the enemy deck, used for the reward
     private bool matchOver;
 
@@ -141,7 +143,13 @@ public class BattleTestManager : MonoBehaviour
         boardDeckView.AddCardToBoardDeck(drawPlayerCard, playerCCView, BoardCardOwner.Player, () =>
         {
             PlayerArtifactActivation(drawPlayerCard);
-            FinishPlayerTurn();
+            if (dialogueController != null)
+            {
+                dialogueController.CheckAIDeckCondition(aiDeckView.GetCardCount(), () =>
+                {
+                    FinishPlayerTurn();
+                });
+            }
         });
 
         // 4: Prepare the next card.
@@ -243,7 +251,13 @@ public class BattleTestManager : MonoBehaviour
         boardDeckView.AddCardToBoardDeck(drawAICard, aiCCView, BoardCardOwner.AI, () =>
         {
             AIArtifactActivation(drawAICard);
-            FinishAITurn();
+            if (dialogueController != null)
+            {
+                dialogueController.CheckAIDeckCondition(aiDeckView.GetCardCount(), () =>
+                {
+                    FinishAITurn();
+                });
+            }
         });
 
         // 3: Prepare the next card for the AI.
@@ -330,6 +344,12 @@ public class BattleTestManager : MonoBehaviour
 
     private void CheckAndResolveMatch(bool isPlayerWinner, Action<bool> onMatchResolved)
     {
+        if (isMixAndDistributePendingOrActive)
+        {
+            onMatchResolved(false);
+            return;
+        }
+
         // 1: Read the latest two cards and stop when there is no possible match.
         List<CardData> boardDeck = boardDeckView.GetBoardDeck();
         if (boardDeck.Count < 2)
@@ -459,6 +479,55 @@ public class BattleTestManager : MonoBehaviour
             }
         );
     }
+
+    public void HandleMonitorDialogueAgree()
+    {
+        isMixAndDistributePendingOrActive = true;
+        isBusy = true;
+        SetSwipe(playerCCView, false);
+
+        artifactController.ResetAllProtection();
+
+        Vector2 playerDeckPosition = playerDeckView.GetComponent<RectTransform>().anchoredPosition;
+        Vector2 aiDeckPosition = aiDeckView.GetComponent<RectTransform>().anchoredPosition;
+
+        boardDeckView.MixAndDistributeBoardCards(
+            playerDeckPosition,
+            aiDeckPosition,
+            (distributedPlayerCards, distributedAICards) =>
+            {
+                int reshufflesPending = 2;
+
+                void FinishReshuffle()
+                {
+                    reshufflesPending--;
+
+                    if (reshufflesPending == 0)
+                    {
+                        isMixAndDistributePendingOrActive = false;
+                        RestoreMissingCards();
+                        SetPlayerTurn();
+                    }
+                }
+
+                playerDeckView.AddCardsAndReshuffle(distributedPlayerCards, FinishReshuffle);
+                aiDeckView.AddCardsAndReshuffle(distributedAICards, FinishReshuffle);
+            }
+        );
+    }
+
+    public void HandleMonitorDialogueDisagree()
+    {
+        isBusy = true;
+        SetSwipe(playerCCView, false);
+
+        ReturnBoardCardsToOwnerDecks(() =>
+        {
+            RestoreMissingCards();
+            SetPlayerTurn();
+        });
+    }
+
 
     private void UpdatePlayerCurrentCard()
     {

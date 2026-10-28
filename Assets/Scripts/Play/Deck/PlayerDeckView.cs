@@ -6,11 +6,13 @@ public class PlayerDeckView : MonoBehaviour
 {
     [Header("Audio Settings")]
     [SerializeField] private AudioSource deckAudioSource;
-    [SerializeField] private AudioClip shuffleAudioClip;
     [SerializeField] private AudioClip drawAudioClip;
 
     [Header("Prefab Settings")]
     [SerializeField] private CardView cardPrefab;
+
+    [Header("Dialogue Settings")]
+    [SerializeField] private DialogueController dialogueController;
 
     private readonly List<CardData> playerDeckData = new List<CardData>();
     private readonly List<CardView> playerDeckView = new List<CardView>();
@@ -82,7 +84,15 @@ public class PlayerDeckView : MonoBehaviour
 
     private void AnimateDeckShuffle(System.Action onAnimationComplete)
     {
-        OverhandDeckShuffleAnimation(playerDeckView, () =>
+        Sequence seq = DOTween.Sequence();
+
+        // 1: Gather cards to the deck's position first
+        seq.Append(AnimationController.Instance.GatherCards(playerDeckView, Vector2.zero));
+
+        // 2: Overhand shuffle right after gathering finishes
+        seq.Append(AnimationController.Instance.OverhandShuffle(playerDeckView, Vector2.zero, 100f));
+
+        seq.OnComplete(() =>
         {
             RepositionStack();
             onAnimationComplete?.Invoke();
@@ -108,7 +118,7 @@ public class PlayerDeckView : MonoBehaviour
     {
         if (list == null || list.Count < 5) return;
 
-        int randomIndex = Random.Range(4, list.Count);
+        int randomIndex = Random.Range(0, list.Count - 4);
 
         CardData cardCopy = Instantiate(list[randomIndex]);
         cardCopy.isArtifact = true;
@@ -119,6 +129,11 @@ public class PlayerDeckView : MonoBehaviour
 
     public CardData DrawCard()
     {
+        if (dialogueController != null && dialogueController.IsDialogueActive)
+        {
+            return null;
+        }
+
         if (playerDeckData.Count == 0) return null;
 
         PlayDrawSound();
@@ -177,87 +192,6 @@ public class PlayerDeckView : MonoBehaviour
         }
     }
 
-    public void OverhandDeckShuffleAnimation(List<CardView> deckCardViews, System.Action onComplete)
-    {
-        if (deckCardViews == null || deckCardViews.Count < 4)
-        {
-            onComplete?.Invoke();
-            return;
-        }
-
-        PlayCardShuffleSound();
-
-        Sequence seq = DOTween.Sequence();
-
-        // 1: Gather and straighten all cards into board's center
-        Sequence gatherSeq = DOTween.Sequence();
-        foreach (var cardView in deckCardViews)
-        {
-            if (cardView == null) continue;
-            RectTransform cardTrans = cardView.GetComponent<RectTransform>();
-            cardTrans.DOKill();
-            cardTrans.SetAsLastSibling();
-
-            gatherSeq.Join(cardTrans.DOAnchorPos(Vector3.zero, 0.25f).SetEase(Ease.OutQuad));
-            gatherSeq.Join(cardTrans.DORotate(Vector3.zero, 0.25f).SetEase(Ease.OutQuad));
-            gatherSeq.Join(cardTrans.DOScale(Vector3.one, 0.25f).SetEase(Ease.OutQuad));
-        }
-        seq.Append(gatherSeq);
-
-        // 2: Short pause for better visual effect
-        seq.AppendInterval(0.1f);
-
-        Sequence shuffleSeq = DOTween.Sequence();
-        int shuffleIterations = 3;
-
-        // 3: Overhand shuffle effect
-        for (int iter = 0; iter < shuffleIterations; iter++)
-        {
-            // 3.1: Pick a random chunk from the middle of the deck
-            int chunkSize = Random.Range(2, Mathf.Max(3, deckCardViews.Count / 2));
-            int startIndex = Random.Range(0, deckCardViews.Count - chunkSize);
-            int endIndex = startIndex + chunkSize;
-
-            Sequence iterationSeq = DOTween.Sequence();
-            List<RectTransform> movingCards = new List<RectTransform>();
-
-            for (int i = startIndex; i < endIndex; i++)
-            {
-                if (deckCardViews[i] != null)
-                {
-                    RectTransform cardTrans = deckCardViews[i].GetComponent<RectTransform>();
-                    movingCards.Add(cardTrans);
-                }
-            }
-
-            if (movingCards.Count == 0) continue;
-
-            // 3.2: Pull down and return up vertically in a single loop per card
-            foreach (var cardTrans in movingCards)
-            {
-                Vector2 downPosition = new Vector2(0f, 100f);
-
-                Sequence cardMoveSeq = DOTween.Sequence();
-                cardMoveSeq.Append(cardTrans.DOAnchorPos(downPosition, 0.12f).SetEase(Ease.OutQuad));
-                cardMoveSeq.AppendCallback(() => cardTrans.SetAsLastSibling());
-                cardMoveSeq.Append(cardTrans.DOAnchorPos(Vector2.zero, 0.12f).SetEase(Ease.InQuad));
-
-                iterationSeq.Join(cardMoveSeq);
-            }
-
-            // 3.3: Short pause for better visual effect
-            iterationSeq.AppendInterval(0.1f);
-
-            shuffleSeq.Append(iterationSeq);
-        }
-        seq.Append(shuffleSeq);
-
-        seq.OnComplete(() =>
-        {
-            onComplete?.Invoke();
-        });
-    }
-
     public CardData StolenCard()
     {
         if (playerDeckData.Count == 0) return null;
@@ -288,14 +222,6 @@ public class PlayerDeckView : MonoBehaviour
         }
         playerDeckView.Clear();
         playerDeckData.Clear();
-    }
-
-    private void PlayCardShuffleSound()
-    {
-        if (deckAudioSource != null && shuffleAudioClip != null)
-        {
-            deckAudioSource.PlayOneShot(shuffleAudioClip);
-        }
     }
 
     private void PlayDrawSound()

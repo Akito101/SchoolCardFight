@@ -16,129 +16,307 @@ public class DialogueController : MonoBehaviour
     [SerializeField] private AIType currentAIType = AIType.Monitor;
 
     [Header("Avatar Settings")]
-    [SerializeField] private RectTransform avatarRect;
-
-    [Header("Monitor Dialogue Box References")]
-    [SerializeField] private RectTransform monitorDialogueBox1;
-    [SerializeField] private RectTransform monitorDialogueBox2;
+    [SerializeField] private RectTransform teacherAvatarRect;
+    [SerializeField] private RectTransform monitorAvatarRect;
 
     [Header("Teacher Dialogue Boxes References")]
     [SerializeField] private RectTransform teacherDialogueBox1;
     [SerializeField] private RectTransform teacherDialogueBox2;
+    [SerializeField] private RectTransform teacherButtomBox1;
+    [SerializeField] private RectTransform teacherButtomBox2;
 
+    [Header("Monitor Dialogue Boxes References")]
+    [SerializeField] private RectTransform monitorDialogueBox1;
+    [SerializeField] private RectTransform monitorDialogueBox2;
+    [SerializeField] private RectTransform monitorButtomBox1;
+    [SerializeField] private RectTransform monitorButtomBox2;
+
+    [Header(" Battle Test Manager Reference")]
+    [SerializeField] private BattleTestManager battleTestManager;
+
+    public bool IsDialogueActive { get; private set; } = false;
+
+    private RectTransform activeAvatarRect;
     private Vector2 avatarOriginalPos;
-    private RectTransform activeDialogueBox;
-    private Vector2 activeDialogueOriginalPos;
+
+    private RectTransform activeAIBox;
+    private Vector2 activeAIOriginalPos;
+
+    private RectTransform activePlayerBox;
+    private Vector2 activePlayerOriginalPos;
+
     private bool hasTriggeredMonitorDialogue1 = false;
     private bool hasTriggeredMonitorDialogue2 = false;
 
-    private float slideDuration = 0.45f;
-    private float offscreenRightOffset = 800f;
+    private bool hasTriggeredTeacherDialogue1 = false;
+    private bool hasTriggeredTeacherDialogue2 = false;
+
+    private int activeDialogueIndex = 1;
+
+    private float slideDuration = 0.5f;
+    private float avatarOffset = 300f;
+    private float aiDialogueOffset = 1200f;
+    private float playerDialogueOffset = 1000f;
+
+    private System.Action currentDialogueCompleteCallback;
 
     private void Awake()
     {
-        if (avatarRect != null)
-        {
-            avatarOriginalPos = avatarRect.anchoredPosition;
-            avatarRect.anchoredPosition = new Vector2(avatarOriginalPos.x + offscreenRightOffset, avatarOriginalPos.y);
-            avatarRect.gameObject.SetActive(false);
-        }
+        if (monitorAvatarRect != null) avatarOriginalPos = monitorAvatarRect.anchoredPosition;
+        if (teacherAvatarRect != null) avatarOriginalPos = teacherAvatarRect.anchoredPosition;
 
-        // Hide all pre-rendered dialogue boxes on start
-        HideAllDialogueBoxes();
+        ResetAllToOffscreen();
     }
 
-    public void CheckAIDeckCondition(int currentDeckCount)
+    public void CheckAIDeckCondition(int currentDeckCount, System.Action onFinished = null)
     {
+        if (IsDialogueActive)
+        {
+            onFinished?.Invoke();
+            return;
+        }
+
+        bool dialogueTriggered = false;
+
         switch (currentAIType)
         {
-            case AIType.Monitor:
-                // First condition: Deck count drops below 14
-                if (currentDeckCount < 14 && !hasTriggeredMonitorDialogue1)
-                {
-                    hasTriggeredMonitorDialogue1 = true;
-                    ShowDialogueSequence(monitorDialogueBox1);
-                }
-                // Second condition example: Deck count drops below 7
-                else if (currentDeckCount < 7 && !hasTriggeredMonitorDialogue2)
-                {
-                    hasTriggeredMonitorDialogue2 = true;
-                    ShowDialogueSequence(monitorDialogueBox2);
-                }
+            case AIType.Teacher:
+                // Hook up Teacher pairs here when ready
                 break;
 
-            case AIType.Teacher:
-                // Teacher logic can be hooked up here similarly
+            case AIType.Monitor:
+                if (currentDeckCount < 14 && !hasTriggeredMonitorDialogue1)
+                {
+                    dialogueTriggered = TriggerAndTrackDialogue(1, ref hasTriggeredMonitorDialogue1, monitorAvatarRect, monitorDialogueBox1, monitorButtomBox1, onFinished);
+                }
+                else if (currentDeckCount < 7 && !hasTriggeredMonitorDialogue2)
+                {
+                    dialogueTriggered = TriggerAndTrackDialogue(2, ref hasTriggeredMonitorDialogue2, monitorAvatarRect, monitorDialogueBox2, monitorButtomBox2, onFinished);
+                }
                 break;
 
             case AIType.Child:
             case AIType.Student:
-                // Currently have no dialogue UI assigned
                 break;
+        }
+
+        if (!dialogueTriggered)
+        {
+            onFinished?.Invoke();
         }
     }
 
-    public void ShowDialogueSequence(RectTransform targetDialogueBox)
+    private bool TriggerAndTrackDialogue(int dialogueIndex, ref bool triggerFlag, RectTransform avatar, RectTransform aiBox, RectTransform playerBox, System.Action onFinished)
     {
-        if (targetDialogueBox == null) return;
+        triggerFlag = true;
+        activeDialogueIndex = dialogueIndex;
 
-        // Hide any active dialogue box before starting a new sequence
-        HideAllDialogueBoxes();
+        TriggerDialogueWithBlock(avatar, aiBox, playerBox, () =>
+        {
+            Debug.Log($"{currentAIType} Dialogue {activeDialogueIndex} completed.");
+            onFinished?.Invoke();
+        });
 
-        activeDialogueBox = targetDialogueBox;
-        activeDialogueOriginalPos = activeDialogueBox.anchoredPosition;
+        return true;
+    }
 
-        // Position dialogue box offscreen initially
-        activeDialogueBox.anchoredPosition = new Vector2(activeDialogueOriginalPos.x + offscreenRightOffset, activeDialogueOriginalPos.y);
-        activeDialogueBox.gameObject.SetActive(true);
+    public void TriggerDialogueWithBlock(RectTransform targetAvatar, RectTransform targetAIBox, RectTransform targetPlayerBox, System.Action onDialogueComplete)
+    {
+        IsDialogueActive = true;
+        currentDialogueCompleteCallback = onDialogueComplete;
+        ShowDialoguePair(targetAvatar, targetAIBox, targetPlayerBox);
+    }
+
+    public void ShowDialoguePair(RectTransform targetAvatar, RectTransform targetAIBox, RectTransform targetPlayerBox, System.Action onComplete = null)
+    {
+        if (targetAIBox == null || targetPlayerBox == null) return;
+
+        ResetAllToOffscreen();
+
+        // Initialize active references
+        activeAvatarRect = targetAvatar;
+        activeAIBox = targetAIBox;
+        activeAIOriginalPos = activeAIBox.anchoredPosition;
+        activePlayerBox = targetPlayerBox;
+        activePlayerOriginalPos = activePlayerBox.anchoredPosition;
+
+        // Position AI Dialogue Box offscreen right
+        activeAIBox.anchoredPosition = new Vector2(activeAIOriginalPos.x + aiDialogueOffset, activeAIOriginalPos.y);
+        activeAIBox.gameObject.SetActive(true);
+
+        // Position AI Avatar offscreen right
+        activeAvatarRect.anchoredPosition = new Vector2(avatarOriginalPos.x + avatarOffset, avatarOriginalPos.y);
+        activeAvatarRect.gameObject.SetActive(true);
+
+        // Position Unique Player Dialogue Box offscreen right
+        activePlayerBox.anchoredPosition = new Vector2(activePlayerOriginalPos.x - playerDialogueOffset, activePlayerOriginalPos.y);
+        activePlayerBox.gameObject.SetActive(true);
 
         Sequence seq = DOTween.Sequence();
 
-        // 1. Slide Avatar from right to left (original position)
-        if (avatarRect != null)
+        // Step 1: AI Dialogue Box slides in first from right to left
+        seq.Append(activeAIBox.DOAnchorPos(activeAIOriginalPos, slideDuration).SetEase(Ease.OutQuad));
+
+        // Step 2: AI Avatar slides in alongside
+        seq.Insert(0.1f, activeAvatarRect.DOAnchorPos(avatarOriginalPos, slideDuration).SetEase(Ease.OutQuad));
+
+        // Step 3: Pause for 0.1 seconds after AI completes entering
+        seq.AppendInterval(0.1f);
+
+        // Step 4: Unique Paired Player Dialogue Box slides in from left to right
+        seq.Append(activePlayerBox.DOAnchorPos(activePlayerOriginalPos, slideDuration).SetEase(Ease.OutQuad));
+
+        seq.OnComplete(() =>
         {
-            avatarRect.gameObject.SetActive(true);
-            seq.Append(avatarRect.DOAnchorPos(avatarOriginalPos, slideDuration).SetEase(Ease.OutBack));
+            onComplete?.Invoke();
+        });
+    }
+
+    public void OnAgreeClicked() => HandlePlayerChoice("AGREE");
+    public void OnDisagreeClicked() => HandlePlayerChoice("DISAGREE");
+
+    public void HandlePlayerChoice(string choice)
+    {
+        switch (currentAIType)
+        {
+            case AIType.Teacher:
+                if (activeDialogueIndex == 1)
+                {
+                    if (choice == "AGREE")
+                    {
+                        Debug.Log("Teacher - Dialogue 1: Player AGREED.");
+                    }
+                    else
+                    {
+                        Debug.Log("Teacher - Dialogue 1: Player DISAGREED.");
+                    }
+                }
+                else if (activeDialogueIndex == 2)
+                {
+                    if (choice == "AGREE")
+                    {
+                        Debug.Log("Teacher - Dialogue 2: Player AGREED.");
+                    }
+                    else
+                    {
+                        Debug.Log("Teacher - Dialogue 2: Player DISAGREED.");
+                    }
+                }
+                break;
+
+            case AIType.Monitor:
+                if (activeDialogueIndex == 1)
+                {
+                    if (choice == "AGREE")
+                    {
+                        if (battleTestManager != null)
+                        {
+                            battleTestManager.HandleMonitorDialogueAgree();
+                        }
+                    }
+                    else
+                    {
+                        if (battleTestManager != null)
+                        {
+                            battleTestManager.HandleMonitorDialogueDisagree();
+                        }
+                    }
+                }
+                else if (activeDialogueIndex == 2)
+                {
+                    if (choice == "AGREE")
+                    {
+                        // TODO: Put your Monitor Dialogue 1 Agree specific logic here
+                        Debug.Log("Monitor - Dialogue 2: Player AGREED.");
+                    }
+                    else
+                    {
+                        // TODO: Put your Monitor Dialogue 1 Disagree specific logic here
+                        Debug.Log("Monitor - Dialogue 2: Player DISAGREED.");
+                    }
+                }
+                break;
+
+            case AIType.Child:
+            case AIType.Student:
+                break;
         }
 
-        // 2. Slide Dialogue Box from right to left (original position) 0.2s after Avatar starts
-        seq.Insert(0.2f, activeDialogueBox.DOAnchorPos(activeDialogueOriginalPos, slideDuration).SetEase(Ease.OutQuad));
+        OnPlayerDialogueClicked();
+    }
+
+    public void OnPlayerDialogueClicked()
+    {
+        if (!IsDialogueActive) return;
+
+        // When clicked, slide everything out of view and unlock interactions
+        HideDialogue(() =>
+        {
+            IsDialogueActive = false;
+            System.Action tempCallback = currentDialogueCompleteCallback;
+            currentDialogueCompleteCallback = null;
+            tempCallback?.Invoke();
+        });
     }
 
     public void HideDialogue(System.Action onComplete = null)
     {
         Sequence seq = DOTween.Sequence();
 
-        if (activeDialogueBox != null)
+        // 1. Unique Player dialogue slides out first
+        if (activePlayerBox != null)
         {
-            seq.Join(activeDialogueBox.DOAnchorPos(new Vector2(activeDialogueOriginalPos.x + offscreenRightOffset, activeDialogueOriginalPos.y), 0.3f).SetEase(Ease.InQuad));
+            seq.Append(activePlayerBox.DOAnchorPos(new Vector2(activePlayerOriginalPos.x + playerDialogueOffset, activePlayerOriginalPos.y), 0.25f).SetEase(Ease.InQuad));
         }
 
-        if (avatarRect != null)
+        // 2. AI Avatar slides out
+        if (activeAvatarRect != null)
         {
-            seq.Insert(0.1f, avatarRect.DOAnchorPos(new Vector2(avatarOriginalPos.x + offscreenRightOffset, avatarOriginalPos.y), 0.3f).SetEase(Ease.InBack));
+            seq.Insert(0.1f, activeAvatarRect.DOAnchorPos(new Vector2(avatarOriginalPos.x + avatarOffset, avatarOriginalPos.y), 0.25f).SetEase(Ease.InBack));
+        }
+
+        // 3. AI Dialogue Box slides out
+        if (activeAIBox != null)
+        {
+            seq.Insert(0.15f, activeAIBox.DOAnchorPos(new Vector2(activeAIOriginalPos.x + aiDialogueOffset, activeAIOriginalPos.y), 0.25f).SetEase(Ease.InQuad));
         }
 
         seq.OnComplete(() =>
         {
-            HideAllDialogueBoxes();
-            if (avatarRect != null) avatarRect.gameObject.SetActive(false);
+            ResetAllToOffscreen();
             onComplete?.Invoke();
         });
     }
 
-    private void HideAllDialogueBoxes()
+    private void ResetAllToOffscreen()
     {
-        if (monitorDialogueBox1 != null) monitorDialogueBox1.gameObject.SetActive(false);
-        if (monitorDialogueBox2 != null) monitorDialogueBox2.gameObject.SetActive(false);
-        if (teacherDialogueBox1 != null) teacherDialogueBox1.gameObject.SetActive(false);
-        if (teacherDialogueBox2 != null) teacherDialogueBox2.gameObject.SetActive(false);
+        HideAllBoxes();
+
+        if (monitorAvatarRect != null)
+        {
+            monitorAvatarRect.anchoredPosition = new Vector2(avatarOriginalPos.x + avatarOffset, avatarOriginalPos.y);
+            monitorAvatarRect.gameObject.SetActive(false);
+        }
+
+        if (teacherAvatarRect != null)
+        {
+            teacherAvatarRect.anchoredPosition = new Vector2(avatarOriginalPos.x + avatarOffset, avatarOriginalPos.y);
+            teacherAvatarRect.gameObject.SetActive(false);
+        }
     }
 
-    public void SetAIType(AIType newAIType)
+    private void HideAllBoxes()
     {
-        currentAIType = newAIType;
-        hasTriggeredMonitorDialogue1 = false;
-        hasTriggeredMonitorDialogue2 = false;
+        if (monitorDialogueBox1 != null) monitorDialogueBox1.gameObject.SetActive(false);
+        if (monitorButtomBox1 != null) monitorButtomBox1.gameObject.SetActive(false);
+
+        if (monitorDialogueBox2 != null) monitorDialogueBox2.gameObject.SetActive(false);
+        if (monitorButtomBox2 != null) monitorButtomBox2.gameObject.SetActive(false);
+
+        if (teacherDialogueBox1 != null) teacherDialogueBox1.gameObject.SetActive(false);
+        if (teacherButtomBox1 != null) teacherButtomBox1.gameObject.SetActive(false);
+
+        if (teacherDialogueBox2 != null) teacherDialogueBox2.gameObject.SetActive(false);
+        if (teacherButtomBox2 != null) teacherButtomBox2.gameObject.SetActive(false);
     }
 }

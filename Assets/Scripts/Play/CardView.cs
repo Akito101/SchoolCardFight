@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.UI;
 using DG.Tweening;
 using System;
@@ -109,9 +110,7 @@ public class CardView : MonoBehaviour
         seq.Join(currentCardTransform.DORotate(new Vector3(0f, 0f, 0f), 0.4f).SetEase(Ease.OutQuad));
 
         // 2. Flip effect: Compress width to 0 (Edge-on)
-        seq.Append(currentCardTransform.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
-        seq.AppendCallback(() => ShowFaceUp());
-        seq.Append(currentCardTransform.DOScaleX(1.5f, 0.3f).SetEase(Ease.OutQuad));
+        seq.Append(AnimationController.Instance.FlipFaceUp(new List<CardView> { this }, 1.4f));
 
         // 3. Pause for a split second so the player can look at the revealed card
         seq.AppendInterval(0.4f);

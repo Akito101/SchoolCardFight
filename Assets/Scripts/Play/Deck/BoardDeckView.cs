@@ -102,42 +102,32 @@ public class BoardDeckView : MonoBehaviour
         PlayReturnSound();
 
         List<CardData> wonCards = GetBoardDeck();
-
-        Sequence returnSeq = DOTween.Sequence();
-        Vector3 boardCenterPos = boardTransform.anchoredPosition;
-
+        List<CardView> cardViews = new List<CardView>();
         foreach (var entry in boardEntries)
         {
-            CardView cardView = entry.cardView;
-            if (cardView == null) continue;
+            if (entry.cardView != null) cardViews.Add(entry.cardView);
+        }
 
+        Vector3 boardCenterPos = boardTransform.anchoredPosition;
+        Sequence returnSeq = DOTween.Sequence();
+
+        // 1. Gather all cards to center
+        returnSeq.Append(AnimationController.Instance.GatherCards(cardViews, boardCenterPos));
+
+        // 2. Flip face down 
+        returnSeq.Append(AnimationController.Instance.FlipFaceDown(cardViews));
+        returnSeq.AppendInterval(0.1f);
+
+        // 3. Move all cards to winner's deck position
+        Sequence moveSeq = DOTween.Sequence();
+        foreach (var cardView in cardViews)
+        {
+            if (cardView == null) continue;
             RectTransform cardTrans = cardView.GetComponent<RectTransform>();
             cardTrans.DOKill();
-
-            Sequence cardSeq = DOTween.Sequence();
-            cardView.transform.SetAsLastSibling();
-
-            // 1: Gather and straighten all cards into board's center
-            cardSeq.Join(cardTrans.DOAnchorPos(boardCenterPos, 0.3f).SetEase(Ease.OutQuad));
-            cardSeq.Join(cardTrans.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutQuad));
-            cardSeq.Join(cardTrans.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutQuad));
-
-            // 2: Flip effect: Compress width to 0 (Edge-on)
-            cardSeq.Append(cardTrans.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
-            cardSeq.AppendCallback(() =>
-            {
-                if (cardView != null) cardView.ShowFaceDown();
-            });
-            cardSeq.Append(cardTrans.DOScaleX(1f, 0.3f).SetEase(Ease.OutQuad));
-
-            // 3: Short pause for better visual effect
-            cardSeq.AppendInterval(0.1f);
-
-            // 4: Move deck to the winner's deck position
-            cardSeq.Append(cardTrans.DOAnchorPos(targetPosition, 0.45f).SetEase(Ease.InBack));
-
-            returnSeq.Join(cardSeq);
+            moveSeq.Join(cardTrans.DOAnchorPos(targetPosition, 0.45f).SetEase(Ease.InBack));
         }
+        returnSeq.Append(moveSeq);
 
         returnSeq.OnComplete(() =>
         {
@@ -155,9 +145,7 @@ public class BoardDeckView : MonoBehaviour
 
         List<CardData> playerCards = new List<CardData>();
         List<CardData> aiCards = new List<CardData>();
-
-        Sequence returnSeq = DOTween.Sequence();
-        Vector3 boardCenterPos = boardTransform.anchoredPosition;
+        List<CardView> cardViews = new List<CardView>();
 
         foreach (var entry in boardEntries)
         {
@@ -170,36 +158,116 @@ public class BoardDeckView : MonoBehaviour
                 aiCards.Add(entry.cardData);
             }
 
+            if (entry.cardView != null)
+            {
+                cardViews.Add(entry.cardView);
+            }
+        }
+
+        if (cardViews.Count == 0)
+        {
+            ClearBoard();
+            onComplete?.Invoke(playerCards, aiCards);
+            return;
+        }
+
+        Vector3 boardCenterPos = boardTransform.anchoredPosition;
+        Sequence returnSeq = DOTween.Sequence();
+
+        // 1. Gather all cards to center
+        returnSeq.Append(AnimationController.Instance.GatherCards(cardViews, boardCenterPos));
+
+        // 2. Flip face down
+        returnSeq.Append(AnimationController.Instance.FlipFaceDown(cardViews));
+        returnSeq.AppendInterval(0.1f);
+
+        // 3. Move each card to its specific owner's deck position
+        Sequence moveSeq = DOTween.Sequence();
+        foreach (var entry in boardEntries)
+        {
             CardView cardView = entry.cardView;
             if (cardView == null) continue;
 
-            Vector2 targetPosition = entry.owner == BoardCardOwner.Player
-                ? playerDeckPosition
-                : aiDeckPosition;
-
+            Vector2 targetPosition = (entry.owner == BoardCardOwner.Player) ? playerDeckPosition : aiDeckPosition;
             RectTransform cardTrans = cardView.GetComponent<RectTransform>();
             cardTrans.DOKill();
 
-            Sequence cardSeq = DOTween.Sequence();
-            cardView.transform.SetAsLastSibling();
-
-            // 1: Gather and straighten each decks into respective center positions 
-            cardSeq.Join(cardTrans.DOAnchorPos(boardCenterPos, 0.3f).SetEase(Ease.OutQuad));
-            cardSeq.Join(cardTrans.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutQuad));
-            cardSeq.Join(cardTrans.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutQuad));
-
-            // 2: Flip effect: Compress width to 0 (Edge-on)
-            cardSeq.Append(cardTrans.DOScaleX(0f, 0.3f).SetEase(Ease.InQuad));
-            cardSeq.AppendCallback(() => cardView.ShowFaceDown());
-            cardSeq.Append(cardTrans.DOScaleX(1f, 0.3f).SetEase(Ease.OutQuad));
-
-            // 3: Move decks to the owner's deck position
-            cardSeq.Append(cardTrans.DOAnchorPos(targetPosition, 0.45f).SetEase(Ease.InBack));
-
-            returnSeq.Join(cardSeq);
+            moveSeq.Join(cardTrans.DOAnchorPos(targetPosition, 0.45f).SetEase(Ease.InBack));
         }
+        returnSeq.Append(moveSeq);
 
         returnSeq.OnComplete(() =>
+        {
+            ClearBoard();
+            onComplete?.Invoke(playerCards, aiCards);
+        });
+    }
+
+    public void MixAndDistributeBoardCards(Vector2 playerDeckPosition,
+    Vector2 aiDeckPosition,
+    Action<List<CardData>, List<CardData>> onComplete)
+    {
+        // 1: Combine collection gathering into a single efficient pass
+        List<CardData> allCards = new List<CardData>();
+        List<CardView> cardViews = new List<CardView>();
+
+        foreach (var entry in boardEntries)
+        {
+            if (entry.cardData != null) allCards.Add(entry.cardData);
+            if (entry.cardView != null) cardViews.Add(entry.cardView);
+        }
+
+        if (allCards.Count == 0 || cardViews.Count == 0)
+        {
+            ClearBoard();
+            onComplete?.Invoke(new List<CardData>(), new List<CardData>());
+            return;
+        }
+
+        // 2: Shuffle all the card data randomly
+        for (int i = allCards.Count - 1; i > 0; i--)
+        {
+            int randomIndex = UnityEngine.Random.Range(0, i + 1);
+            (allCards[i], allCards[randomIndex]) = (allCards[randomIndex], allCards[i]);
+        }
+
+        // 3: Split the shuffled card data evenly into two halves
+        int halfCount = allCards.Count / 2;
+        List<CardData> playerCards = new List<CardData>();
+        List<CardData> aiCards = new List<CardData>();
+
+        for (int i = 0; i < allCards.Count; i++)
+        {
+            if (i < halfCount) playerCards.Add(allCards[i]);
+            else aiCards.Add(allCards[i]);
+        }
+
+        // 4: Animation sequence to gather, flip, shuffle, and distribute cards
+        Vector3 boardCenterPos = boardTransform.anchoredPosition;
+        Sequence mainSeq = DOTween.Sequence();
+
+        mainSeq.Append(AnimationController.Instance.GatherCards(cardViews, boardCenterPos, PlayReturnSound));
+        mainSeq.Append(AnimationController.Instance.FlipFaceDown(cardViews));
+        mainSeq.Append(AnimationController.Instance.OverhandShuffle(cardViews, boardCenterPos, 100f));
+
+        Sequence distributeSeq = DOTween.Sequence();
+
+
+        int index = 0;
+        foreach (var entry in boardEntries)
+        {
+            CardView cardView = entry.cardView;
+            if (cardView == null) continue;
+
+            Vector2 targetPosition = (index < halfCount) ? playerDeckPosition : aiDeckPosition;
+            index++;
+
+            RectTransform cardTrans = cardView.GetComponent<RectTransform>();
+            distributeSeq.Join(cardTrans.DOAnchorPos(targetPosition, 0.45f).SetEase(Ease.InBack));
+        }
+        mainSeq.Append(distributeSeq);
+
+        mainSeq.OnComplete(() =>
         {
             ClearBoard();
             onComplete?.Invoke(playerCards, aiCards);
