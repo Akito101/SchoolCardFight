@@ -72,18 +72,7 @@ public class DeckBuilder : MonoBehaviour
 
     private void TrimToLimit()
     {
-        int max = MaxDeckSize();
-        if (PlayerDeck.TotalInDeck() <= max) return;
-
-        foreach (CardCount c in new List<CardCount>(PlayerCollection.GetAll()))
-        {
-            int inDeck = PlayerDeck.GetInDeck(c.cardName);
-            for (int i = 0; i < inDeck; i++)
-            {
-                if (PlayerDeck.TotalInDeck() <= max) return;
-                PlayerDeck.MoveToBench(c.cardName);
-            }
-        }
+        DeckLimit.TrimTo(MaxDeckSize(), database);
     }
 
     private void SetTab(bool deckTab)
