@@ -440,23 +440,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VNManager
   steps:
-  - picture: {fileID: 0}
+  - picture: {fileID: 21300000, guid: 259945da55736e74db728f5eabd5c9ba, type: 3}
     voice: {fileID: 0}
     ambience: {fileID: 0}
     voiceVolume: 1
-  - picture: {fileID: 0}
+  - picture: {fileID: 21300000, guid: 72f15f747903944469dbfec5121f979c, type: 3}
     voice: {fileID: 0}
     ambience: {fileID: 0}
     voiceVolume: 1
-  - picture: {fileID: 0}
+  - picture: {fileID: 21300000, guid: 63fb13605455464448cae677db6258a5, type: 3}
     voice: {fileID: 0}
     ambience: {fileID: 0}
     voiceVolume: 1
-  - picture: {fileID: 0}
+  - picture: {fileID: 21300000, guid: a92729f2f83c9684aacb0d58d24bd828, type: 3}
     voice: {fileID: 0}
     ambience: {fileID: 0}
     voiceVolume: 1
-  - picture: {fileID: 0}
+  - picture: {fileID: 21300000, guid: 4ff9f3a3647c02f4cbbae46535854f49, type: 3}
     voice: {fileID: 0}
     ambience: {fileID: 0}
     voiceVolume: 1
