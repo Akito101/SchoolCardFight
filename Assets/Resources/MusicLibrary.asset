@@ -30,5 +30,5 @@ MonoBehaviour:
     volume: 0.6
     scenes:
     - VNIntro
-    - TestGamePlay
+    - Battle
   fadeSeconds: 1

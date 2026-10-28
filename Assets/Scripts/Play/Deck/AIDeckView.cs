@@ -12,6 +12,9 @@ public class AIDeckView : MonoBehaviour
     [Header("Prefab Settings")]
     [SerializeField] private CardView cardPrefab;
 
+    [Header("Dialogue Integration")]
+    [SerializeField] private DialogueController aiDialogueController;
+
     private readonly List<CardData> aiDeckData = new List<CardData>();
     private readonly List<CardView> aiDeckView = new List<CardView>();
 
@@ -38,6 +41,11 @@ public class AIDeckView : MonoBehaviour
         InsertArtifact(aiDeckData, artifactType);
 
         RebuildDeckViews(onAnimationComplete);
+
+        if (aiDialogueController != null)
+        {
+            aiDialogueController.CheckAIDeckCondition(aiDeckData.Count);
+        }
     }
 
     public void AddCardsAndReshuffle(List<CardData> winedDeck, System.Action onAnimationComplete = null)
@@ -132,6 +140,11 @@ public class AIDeckView : MonoBehaviour
         }
 
         RepositionStack();
+
+        if (aiDialogueController != null)
+        {
+            aiDialogueController.CheckAIDeckCondition(aiDeckData.Count);
+        }
 
         return drawnCard;
     }
@@ -286,6 +299,12 @@ public class AIDeckView : MonoBehaviour
         }
 
         RepositionStack();
+
+        if (aiDialogueController != null)
+        {
+            aiDialogueController.CheckAIDeckCondition(aiDeckData.Count);
+        }
+
         return stolenData;
     }
 
