@@ -7,8 +7,6 @@ public class AnimationController : MonoBehaviour
 {
     [Header("Audio Settings")]
     [SerializeField] private AudioSource deckAudioSource;
-    [SerializeField] private AudioClip drawAudioClip;
-    [SerializeField] private AudioClip returnAudioClip;
     [SerializeField] private AudioClip shuffleAudioClip;
 
     public static AnimationController Instance { get; private set; }
