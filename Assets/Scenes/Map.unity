@@ -1613,7 +1613,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   enemyName: Kalay
-  minCards: 10
+  minCards: 8
   button: {fileID: 334417820}
   label: {fileID: 0}
   lockIcon: {fileID: 0}
@@ -2147,7 +2147,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   enemyName: Shae Ka Kg
-  minCards: 20
+  minCards: 15
   button: {fileID: 381750078}
   label: {fileID: 0}
   lockIcon: {fileID: 0}
@@ -12704,7 +12704,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   enemyName: Monitor
-  minCards: 30
+  minCards: 20
   button: {fileID: 1990961860}
   label: {fileID: 0}
   lockIcon: {fileID: 0}
@@ -13357,7 +13357,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   enemyName: Saya Ma
-  minCards: 40
+  minCards: 25
   button: {fileID: 2057541047}
   label: {fileID: 0}
   lockIcon: {fileID: 0}

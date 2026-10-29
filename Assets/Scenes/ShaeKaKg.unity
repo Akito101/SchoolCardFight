@@ -440,20 +440,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VNManager
   steps:
-  - picture: {fileID: 21300000, guid: ba5fd368bdf2536409c3f1cc08bb9396, type: 3}
+  - picture: {fileID: 21300000, guid: 29d759ec49e81bc4d94703edaa3a7d52, type: 3}
     voice: {fileID: 0}
     ambience: {fileID: 0}
     voiceVolume: 0.6
-  - picture: {fileID: 21300000, guid: 27d7d4cdfea83e249aed6a3fd830babc, type: 3}
-    voice: {fileID: 8300000, guid: 90515d664a153664eb55a63f1f3e8b6b, type: 3}
+  - picture: {fileID: 21300000, guid: da497574f5e63a049a2cf8691e62f8d5, type: 3}
+    voice: {fileID: 8300000, guid: d677fa65072578749a4c69229a1a237f, type: 3}
     ambience: {fileID: 0}
     voiceVolume: 0.6
-  - picture: {fileID: 21300000, guid: 4ec20775c64b5274bb2d92b420258ca7, type: 3}
-    voice: {fileID: 8300000, guid: 64b65e25cfcfdf043b26082f2a136417, type: 3}
+  - picture: {fileID: 21300000, guid: 0653dbfb5af94e74e891de433826cf2b, type: 3}
+    voice: {fileID: 8300000, guid: b2d92705eef5cf04fb0e3227aadde829, type: 3}
     ambience: {fileID: 0}
     voiceVolume: 0.6
-  - picture: {fileID: 21300000, guid: e4a4460b985e5c4459d6478621f913e8, type: 3}
-    voice: {fileID: 0}
+  - picture: {fileID: 21300000, guid: ed7f8471b23779b4bb37b4b33359b161, type: 3}
+    voice: {fileID: 8300000, guid: 37e5eab62a671554d886c07869ea3d0b, type: 3}
+    ambience: {fileID: 0}
+    voiceVolume: 0.6
+  - picture: {fileID: 21300000, guid: e2eff17be490f3046954c2e41b2cdcd0, type: 3}
+    voice: {fileID: 8300000, guid: 785b423101549124fa2c8691a2192b63, type: 3}
     ambience: {fileID: 0}
     voiceVolume: 0.6
   fadeTime: 0.3
