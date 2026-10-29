@@ -15,20 +15,29 @@ MonoBehaviour:
   tracks:
   - name: Main Menu
     clip: {fileID: 8300000, guid: ffcc90ccc202d8749a5d5d5b9c0989a2, type: 3}
-    volume: 0.9
+    volume: 0.6
     scenes:
     - MainMenu
   - name: Map
-    clip: {fileID: 8300000, guid: 879eaee827ee01843aa39e10092ad815, type: 3}
-    volume: 0.9
+    clip: {fileID: 8300000, guid: 3d812edaddc4c154786d099d00054fd3, type: 3}
+    volume: 0.2
     scenes:
     - Map
-    - MemoryMatch
-    - RockPaperScissors
   - name: Battle
     clip: {fileID: 8300000, guid: 7b4fa6d48f287f748814f5d499ea662b, type: 3}
-    volume: 0.6
+    volume: 0.2
     scenes:
     - VNIntro
     - Battle
+  - name: PackOpening
+    clip: {fileID: 8300000, guid: 6f34550a67286b44c95fa6d63cb8009d, type: 3}
+    volume: 0.4
+    scenes:
+    - PackOpening
+  - name: MiniGame
+    clip: {fileID: 8300000, guid: 879eaee827ee01843aa39e10092ad815, type: 3}
+    volume: 0.6
+    scenes:
+    - MemoryMatch
+    - RockPaperScissors
   fadeSeconds: 1

@@ -53,7 +53,8 @@ public class DeckBuilder : MonoBehaviour
     {
         if (map == null || map.levels == null || map.levels.Length == 0) return int.MaxValue;
         int index = Mathf.Min(PlayerProgress.ClearedLevels, map.levels.Length - 1);   // all cleared: use the last level
-        return map.levels[index].minCards;
+        int size = NeededFor(index, map.levels[index].minCards);
+        return size > 0 ? size : int.MaxValue;   // 0 = no limit
     }
 
     private void AddUpToLimit()
@@ -168,6 +169,14 @@ public class DeckBuilder : MonoBehaviour
         UpdateRequirement(inDeck);
     }
 
+    // the deck size for a level, read from the LevelRewards asset (0 = no limit)
+    private int NeededFor(int levelIndex, int fallback)
+    {
+        LevelRewards rewards = Resources.Load<LevelRewards>("LevelRewards");
+        LevelRewards.Reward reward = rewards != null ? rewards.Get(levelIndex) : null;
+        return reward != null ? reward.deckSize : fallback;
+    }
+
     private void UpdateRequirement(int inDeck)
     {
         int cleared = PlayerProgress.ClearedLevels;
@@ -178,9 +187,17 @@ public class DeckBuilder : MonoBehaviour
         }
 
         LevelNode next = map.levels[cleared];
-        int missing = next.minCards - inDeck;
+        int needed = NeededFor(cleared, next.minCards);
+
+        if (needed <= 0)
+        {
+            requirementText.text = $"Next fight: {next.enemyName} (no deck limit)";
+            return;
+        }
+
+        int missing = needed - inDeck;
         requirementText.text = missing <= 0
-            ? $"Next fight: {next.enemyName} needs {next.minCards} cards (ready!)"
-            : $"Next fight: {next.enemyName} needs {next.minCards} cards ({missing} more needed)";
+            ? $"Next fight: {next.enemyName} needs {needed} cards (ready!)"
+            : $"Next fight: {next.enemyName} needs {needed} cards ({missing} more needed)";
     }
 }

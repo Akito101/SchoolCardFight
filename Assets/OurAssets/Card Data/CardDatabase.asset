@@ -24,7 +24,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e96c2f74400454443a5268c73ec1840b, type: 2}
   - {fileID: 11400000, guid: 3ac9a9a8a0fd7472e89bb59544f54ac7, type: 2}
   - {fileID: 11400000, guid: cba61462a63d5478bb6547d1c97d062f, type: 2}
-  - {fileID: 11400000, guid: 33ced2cffded2b74fa352f4bf3423c03, type: 2}
   - {fileID: 11400000, guid: 890538bfe7e414b64a7a208655f22c40, type: 2}
   - {fileID: 11400000, guid: 69f332c85d55343868b571cf1597b5ab, type: 2}
   - {fileID: 11400000, guid: 8cacea0bc73df4a3486b70de542caf7d, type: 2}
@@ -34,3 +33,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b6d005786d14d49f8984dbb6b34110a0, type: 2}
   - {fileID: 11400000, guid: bb1002329ca7d4a3fb28f66d7afe553b, type: 2}
   - {fileID: 11400000, guid: 01a903d9c32204c39a0a6a8ada3fc05e, type: 2}
+  - {fileID: 11400000, guid: 33ced2cffded2b74fa352f4bf3423c03, type: 2}
+  oneStarWeight: 70
+  twoStarWeight: 25
+  threeStarWeight: 5

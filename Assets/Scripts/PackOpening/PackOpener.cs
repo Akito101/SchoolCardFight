@@ -29,6 +29,16 @@ public class PackOpener : MonoBehaviour
     public Button backButton;
     public TextMeshProUGUI packsLeftText;
 
+    // AUDIO
+    [Header("Audio")]
+    public AudioSource sfxSource;          // Loop unchecked, Play On Awake unchecked
+    public AudioClip ripRiserClip;
+    public AudioClip cardFlipClip;
+    public AudioClip threeStarClip;        // shared sound for any 3-star card
+    public int specialStarLevel = 3;       // cards at this star level or higher
+    public float flipPitchStep = 0.06f;    // each flipped card sounds slightly higher
+    public float maxFlipPitch = 1.4f;      // upper limit so it doesn't get squeaky
+
     private bool firstTime;
     private int openedThisVisit = 0;
     private bool busy = false;
@@ -40,6 +50,9 @@ public class PackOpener : MonoBehaviour
     private Vector3 packStartScale;
     private Quaternion packStartRot;
     private Transform packTransform;
+
+    // AUDIO: remembers which CardData belongs to which card on screen
+    private Dictionary<PackCardView, CardData> cardDataByView = new Dictionary<PackCardView, CardData>();
 
     void Awake()
     {
@@ -65,6 +78,9 @@ public class PackOpener : MonoBehaviour
             PlayerPrefs.Save();
         }
 
+        // AUDIO: if your GameAudio class has an SFX volume, uncomment and use its real name
+        // if (sfxSource != null) sfxSource.volume = GameAudio.SfxVolume;
+
         ShowIdle();
     }
 
@@ -72,6 +88,30 @@ public class PackOpener : MonoBehaviour
     {
         // stops the floating tween without touching the (maybe already destroyed) button
         DOTween.Kill(packTransform);
+    }
+
+    // AUDIO
+    private void PlayRipRiser()
+    {
+        if (sfxSource == null || ripRiserClip == null) return;
+        sfxSource.pitch = 1f;
+        sfxSource.PlayOneShot(ripRiserClip);
+    }
+
+    // AUDIO
+    private void PlayCardFlip(int flipNumber)
+    {
+        if (sfxSource == null || cardFlipClip == null) return;
+        sfxSource.pitch = Mathf.Min(1f + flipNumber * flipPitchStep, maxFlipPitch);
+        sfxSource.PlayOneShot(cardFlipClip);
+    }
+
+    // AUDIO
+    private void PlaySpecial(AudioClip clip)
+    {
+        if (sfxSource == null || clip == null) return;
+        sfxSource.pitch = 1f;
+        sfxSource.PlayOneShot(clip);
     }
 
     // The pack floats and waits to be tapped
@@ -140,6 +180,8 @@ public class PackOpener : MonoBehaviour
         Transform pack = packButton.transform;
         pack.DOKill();   // stop the floating
 
+        PlayRipRiser(); // AUDIO
+
         // shake and swell, then burst and fade
         Sequence rip = DOTween.Sequence();
         rip.Append(pack.DOShakeRotation(0.7f, new Vector3(0f, 0f, 20f), 30, 90f));
@@ -154,6 +196,7 @@ public class PackOpener : MonoBehaviour
         ClearCards();
         flippedCount = 0;
         totalCards = pulled.Count;
+        cardDataByView.Clear(); // AUDIO
 
         List<PackCardView> cards = new List<PackCardView>();
         for (int i = 0; i < pulled.Count; i++)
@@ -163,6 +206,9 @@ public class PackOpener : MonoBehaviour
             card.onFlipped = OnCardFlipped;
             card.transform.localScale = Vector3.zero;
             card.transform.DOScale(1f, 0.3f).SetDelay(i * 0.12f).SetEase(Ease.OutBack);
+
+            cardDataByView[card] = pulled[i]; // AUDIO
+
             cards.Add(card);
         }
 
@@ -182,6 +228,17 @@ public class PackOpener : MonoBehaviour
 
     private void OnCardFlipped(PackCardView card)
     {
+        // AUDIO: pick the sound for this card
+        CardData data = null;
+        if (card != null) cardDataByView.TryGetValue(card, out data);
+
+        if (data != null && data.signatureSfx != null)
+            PlaySpecial(data.signatureSfx);                       // this card's own sound
+        else if (data != null && data.stars >= specialStarLevel && threeStarClip != null)
+            PlaySpecial(threeStarClip);                           // shared 3-star sound
+        else
+            PlayCardFlip(flippedCount);                           // normal flip
+
         flippedCount++;
     }
 

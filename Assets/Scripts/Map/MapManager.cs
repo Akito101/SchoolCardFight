@@ -51,16 +51,20 @@ public class MapManager : MonoBehaviour
 
     private void OnLevelPressed(int index)
     {
-        int inDeck = PlayerDeck.TotalInDeck();
-        int needed = levels[index].minCards;
+        // the deck size comes from the LevelRewards asset (Min Cards on the button is only a backup)
+        LevelRewards rewards = Resources.Load<LevelRewards>("LevelRewards");
+        LevelRewards.Reward reward = rewards != null ? rewards.Get(index) : null;
+        int needed = reward != null ? reward.deckSize : levels[index].minCards;
 
-        if (inDeck < needed)
+        int inDeck = PlayerDeck.TotalInDeck();
+
+        if (needed > 0 && inDeck < needed)
         {
             ShowMessage($"Your deck needs at least {needed} cards to fight {levels[index].enemyName}.\nYour deck has {inDeck}. Add cards in the Deck tab, or earn coins in the minigame and buy more packs!");
             return;
         }
 
-        PlayerProgress.LevelSelected = index; ;
+        PlayerProgress.LevelSelected = index;
         SceneManager.LoadScene(battleScene);
     }
 
