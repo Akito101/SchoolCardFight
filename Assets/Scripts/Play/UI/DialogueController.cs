@@ -35,6 +35,7 @@ public class DialogueController : MonoBehaviour
     [SerializeField] private BattleTestManager battleTestManager;
 
     public bool IsDialogueActive { get; private set; } = false;
+    public bool IsMonitorAI => currentAIType == AIType.Monitor;
 
     private RectTransform activeAvatarRect;
     private Vector2 avatarOriginalPos;
@@ -50,6 +51,7 @@ public class DialogueController : MonoBehaviour
 
     private bool hasTriggeredTeacherDialogue1 = false;
     private bool hasTriggeredTeacherDialogue2 = false;
+    private int playerWinStreak;
 
     private int activeDialogueIndex = 1;
 
@@ -59,6 +61,7 @@ public class DialogueController : MonoBehaviour
     private float playerDialogueOffset = 1000f;
 
     private System.Action currentDialogueCompleteCallback;
+    private System.Action delayedDialogueCompleteCallback;
 
     private void Awake()
     {
@@ -72,7 +75,6 @@ public class DialogueController : MonoBehaviour
     {
         if (IsDialogueActive)
         {
-            onFinished?.Invoke();
             return;
         }
 
@@ -81,17 +83,22 @@ public class DialogueController : MonoBehaviour
         switch (currentAIType)
         {
             case AIType.Teacher:
-                // Hook up Teacher pairs here when ready
+                if (currentDeckCount < 5 && !hasTriggeredTeacherDialogue1)
+                {
+                    dialogueTriggered = TriggerAndTrackDialogue(
+                        1,
+                        ref hasTriggeredTeacherDialogue1,
+                        teacherAvatarRect,
+                        teacherDialogueBox1,
+                        teacherButtomBox1,
+                        onFinished);
+                }
                 break;
 
             case AIType.Monitor:
                 if (currentDeckCount < 14 && !hasTriggeredMonitorDialogue1)
                 {
                     dialogueTriggered = TriggerAndTrackDialogue(1, ref hasTriggeredMonitorDialogue1, monitorAvatarRect, monitorDialogueBox1, monitorButtomBox1, onFinished);
-                }
-                else if (currentDeckCount < 7 && !hasTriggeredMonitorDialogue2)
-                {
-                    dialogueTriggered = TriggerAndTrackDialogue(2, ref hasTriggeredMonitorDialogue2, monitorAvatarRect, monitorDialogueBox2, monitorButtomBox2, onFinished);
                 }
                 break;
 
@@ -104,6 +111,50 @@ public class DialogueController : MonoBehaviour
         {
             onFinished?.Invoke();
         }
+    }
+
+    public bool CheckTeacherPlayerWinStreak(bool playerWon, System.Action onFinished = null)
+    {
+        if (currentAIType != AIType.Teacher)
+        {
+            return false;
+        }
+
+        if (!playerWon)
+        {
+            playerWinStreak = 0;
+            return false;
+        }
+
+        playerWinStreak++;
+        if (playerWinStreak < 2 || hasTriggeredTeacherDialogue2 || IsDialogueActive)
+        {
+            return false;
+        }
+
+        hasTriggeredTeacherDialogue2 = true;
+        activeDialogueIndex = 2;
+        TriggerDialogueWithBlock(
+            teacherAvatarRect,
+            teacherDialogueBox2,
+            teacherButtomBox2,
+            onFinished);
+        return true;
+    }
+
+    public void TriggerMonitorDialogue2()
+    {
+        if (IsDialogueActive || hasTriggeredMonitorDialogue2) return;
+
+        if (currentAIType != AIType.Monitor) return;
+
+        hasTriggeredMonitorDialogue2 = true;
+        activeDialogueIndex = 2;
+
+        TriggerDialogueWithBlock(monitorAvatarRect, monitorDialogueBox2, monitorButtomBox2, () =>
+        {
+            Debug.Log("Monitor Dialogue 2 triggered via player first artifact completed.");
+        });
     }
 
     private bool TriggerAndTrackDialogue(int dialogueIndex, ref bool triggerFlag, RectTransform avatar, RectTransform aiBox, RectTransform playerBox, System.Action onFinished)
@@ -184,22 +235,38 @@ public class DialogueController : MonoBehaviour
                 {
                     if (choice == "AGREE")
                     {
-                        Debug.Log("Teacher - Dialogue 1: Player AGREED.");
+                        if (battleTestManager != null)
+                        {
+                            WaitForTeacherDialogueEffect();
+                            battleTestManager.HandleTeacherDialogue1Choice(true);
+                        }
                     }
                     else
                     {
-                        Debug.Log("Teacher - Dialogue 1: Player DISAGREED.");
+                        if (battleTestManager != null)
+                        {
+                            WaitForTeacherDialogueEffect();
+                            battleTestManager.HandleTeacherDialogue1Choice(false);
+                        }
                     }
                 }
                 else if (activeDialogueIndex == 2)
                 {
                     if (choice == "AGREE")
                     {
-                        Debug.Log("Teacher - Dialogue 2: Player AGREED.");
+                        if (battleTestManager != null)
+                        {
+                            WaitForTeacherDialogueEffect();
+                            battleTestManager.HandleTeacherDialogue2Choice(true);
+                        }
                     }
                     else
                     {
-                        Debug.Log("Teacher - Dialogue 2: Player DISAGREED.");
+                        if (battleTestManager != null)
+                        {
+                            WaitForTeacherDialogueEffect();
+                            battleTestManager.HandleTeacherDialogue2Choice(false);
+                        }
                     }
                 }
                 break;
@@ -207,6 +274,7 @@ public class DialogueController : MonoBehaviour
             case AIType.Monitor:
                 if (activeDialogueIndex == 1)
                 {
+                    SuppressDialogueContinuation();
                     if (choice == "AGREE")
                     {
                         if (battleTestManager != null)
@@ -226,13 +294,17 @@ public class DialogueController : MonoBehaviour
                 {
                     if (choice == "AGREE")
                     {
-                        // TODO: Put your Monitor Dialogue 1 Agree specific logic here
-                        Debug.Log("Monitor - Dialogue 2: Player AGREED.");
+                        if (battleTestManager != null)
+                        {
+                            battleTestManager.HandleMonitorDialogue2Agree();
+                        }
                     }
                     else
                     {
-                        // TODO: Put your Monitor Dialogue 1 Disagree specific logic here
-                        Debug.Log("Monitor - Dialogue 2: Player DISAGREED.");
+                        if (battleTestManager != null)
+                        {
+                            battleTestManager.HandleMonitorDialogue2Disagree();
+                        }
                     }
                 }
                 break;
@@ -243,6 +315,24 @@ public class DialogueController : MonoBehaviour
         }
 
         OnPlayerDialogueClicked();
+    }
+
+    public void WaitForTeacherDialogueEffect()
+    {
+        delayedDialogueCompleteCallback = currentDialogueCompleteCallback;
+        currentDialogueCompleteCallback = null;
+    }
+
+    public void SuppressDialogueContinuation()
+    {
+        currentDialogueCompleteCallback = null;
+    }
+
+    public void CompleteTeacherDialogueEffect()
+    {
+        System.Action callback = delayedDialogueCompleteCallback;
+        delayedDialogueCompleteCallback = null;
+        callback?.Invoke();
     }
 
     public void OnPlayerDialogueClicked()
@@ -266,7 +356,7 @@ public class DialogueController : MonoBehaviour
         // 1. Unique Player dialogue slides out first
         if (activePlayerBox != null)
         {
-            seq.Append(activePlayerBox.DOAnchorPos(new Vector2(activePlayerOriginalPos.x + playerDialogueOffset, activePlayerOriginalPos.y), 0.25f).SetEase(Ease.InQuad));
+            seq.Append(activePlayerBox.DOAnchorPos(new Vector2(activePlayerOriginalPos.x - playerDialogueOffset, activePlayerOriginalPos.y), 0.25f).SetEase(Ease.InQuad));
         }
 
         // 2. AI Avatar slides out

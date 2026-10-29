@@ -44,6 +44,12 @@ public class BattleTestManager : MonoBehaviour
     private Turn currentTurn = Turn.Player;
     private int initialDeckAnimationsPending;
     private bool isMixAndDistributePendingOrActive;
+    private bool playerUsedArtifactFirst;
+    private bool aiUsedArtifactFirst;
+    private bool monitorDialogue2Triggered;
+    private CardData pendingPlayerArtifactCard;
+    private List<CardData> pendingTeacherPlayerCards = new List<CardData>();
+    private List<CardData> pendingTeacherAICards = new List<CardData>();
     private List<CardData> enemyStartingDeck;   // untouched copy of the enemy deck, used for the reward
     private bool matchOver;
 
@@ -154,6 +160,9 @@ public class BattleTestManager : MonoBehaviour
         boardDeckView.AddCardToBoardDeck(drawPlayerCard, playerCCView, BoardCardOwner.Player, () =>
         {
             PlayerArtifactActivation(drawPlayerCard);
+
+            if (monitorDialogue2Triggered) return;
+
             if (dialogueController != null)
             {
                 dialogueController.CheckAIDeckCondition(aiDeckView.GetCardCount(), () =>
@@ -171,6 +180,19 @@ public class BattleTestManager : MonoBehaviour
     {
         if (drawPlayerCard.isArtifact)
         {
+            playerUsedArtifactFirst = true;
+            if (!aiUsedArtifactFirst && !monitorDialogue2Triggered)
+            {
+                pendingPlayerArtifactCard = drawPlayerCard;
+                CheckPlayerFirstArtifactUsage();
+
+                if (monitorDialogue2Triggered)
+                {
+                    Debug.Log("Player used an artifact first, triggering Monitor dialogue 2.");
+                    return;
+                }
+            }
+
             if (artifactController == null)
             {
                 Debug.LogError("Cannot process Player artifact activation because the ArtifactController reference is missing.");
@@ -236,6 +258,25 @@ public class BattleTestManager : MonoBehaviour
     {
         if (matchOver) return;
 
+        if (dialogueController != null && dialogueController.IsDialogueActive)
+        {
+            DOVirtual.DelayedCall(0.1f, DrawAICard);
+            return;
+        }
+
+        dialogueController?.CheckAIDeckCondition(aiDeckView.GetCardCount(), DrawAICardAfterDialogue);
+        if (dialogueController != null)
+        {
+            return;
+        }
+
+        DrawAICardAfterDialogue();
+    }
+
+    private void DrawAICardAfterDialogue()
+    {
+        if (matchOver) return;
+
         // 1: Draw the AI's next card and return the board cards if its deck is empty.
         CardData drawAICard = aiDeckView.DrawCard();
         if (drawAICard == null)
@@ -262,13 +303,8 @@ public class BattleTestManager : MonoBehaviour
         boardDeckView.AddCardToBoardDeck(drawAICard, aiCCView, BoardCardOwner.AI, () =>
         {
             AIArtifactActivation(drawAICard);
-            if (dialogueController != null)
-            {
-                dialogueController.CheckAIDeckCondition(aiDeckView.GetCardCount(), () =>
-                {
-                    FinishAITurn();
-                });
-            }
+
+            FinishAITurn();
         });
 
         // 3: Prepare the next card for the AI.
@@ -279,6 +315,8 @@ public class BattleTestManager : MonoBehaviour
     {
         if (drawAICard.isArtifact)
         {
+            aiUsedArtifactFirst = true;
+
             if (artifactController == null)
             {
                 Debug.LogError("Cannot process AI artifact activation because the ArtifactController reference is missing.");
@@ -355,7 +393,7 @@ public class BattleTestManager : MonoBehaviour
 
     private void CheckAndResolveMatch(bool isPlayerWinner, Action<bool> onMatchResolved)
     {
-        if (isMixAndDistributePendingOrActive)
+        if (isMixAndDistributePendingOrActive || monitorDialogue2Triggered)
         {
             onMatchResolved(false);
             return;
@@ -392,9 +430,34 @@ public class BattleTestManager : MonoBehaviour
             isBusy = true;
             SetSwipe(playerCCView, false);
 
+            if (!isPlayerWinner)
+            {
+                dialogueController?.CheckTeacherPlayerWinStreak(false);
+            }
+
             // 4: Animate the board cards moving to the winner's deck.
             RectTransform winnerDeckTransform = isPlayerWinner ? playerDeckView.GetComponent<RectTransform>() : aiDeckView.GetComponent<RectTransform>();
             Vector2 targetDeckPos = winnerDeckTransform.anchoredPosition;
+
+            if (isPlayerWinner)
+            {
+                pendingTeacherPlayerCards.Clear();
+                pendingTeacherAICards.Clear();
+
+                for (int i = boardDeck.Count - 2; i < boardDeck.Count; i++)
+                {
+                    if (!boardDeckView.TryGetCardOwner(boardDeck[i], out BoardCardOwner owner)) continue;
+
+                    if (owner == BoardCardOwner.Player) pendingTeacherPlayerCards.Add(boardDeck[i]);
+                    else pendingTeacherAICards.Add(boardDeck[i]);
+                }
+            }
+
+            if (isPlayerWinner && dialogueController != null &&
+                dialogueController.CheckTeacherPlayerWinStreak(true, () => onMatchResolved(true)))
+            {
+                return;
+            }
 
             boardDeckView.AddBoardDeckToWinnerDeck(
             targetDeckPos,
@@ -491,6 +554,26 @@ public class BattleTestManager : MonoBehaviour
         );
     }
 
+    public void CheckPlayerFirstArtifactUsage()
+    {
+        if (monitorDialogue2Triggered ||
+            dialogueController == null ||
+            !dialogueController.IsMonitorAI)
+        {
+            return;
+        }
+
+        if (playerUsedArtifactFirst && !aiUsedArtifactFirst)
+        {
+            monitorDialogue2Triggered = true;
+
+            isBusy = true;
+            SetSwipe(playerCCView, false);
+
+            dialogueController.TriggerMonitorDialogue2();
+        }
+    }
+
     public void HandleMonitorDialogueAgree()
     {
         isMixAndDistributePendingOrActive = true;
@@ -537,6 +620,132 @@ public class BattleTestManager : MonoBehaviour
             RestoreMissingCards();
             SetPlayerTurn();
         });
+    }
+
+    public void HandleMonitorDialogue2Agree()
+    {
+        pendingPlayerArtifactCard = null;
+        artifactEffectPending = false;
+        monitorDialogue2Triggered = false;
+
+        DOVirtual.DelayedCall(0.25f, () =>
+        {
+            currentTurn = Turn.AI;
+            isBusy = true;
+            DrawAICard();
+        });
+    }
+
+    public void HandleMonitorDialogue2Disagree()
+    {
+        CardData artifactCard = pendingPlayerArtifactCard;
+        pendingPlayerArtifactCard = null;
+        monitorDialogue2Triggered = false;
+        isBusy = true;
+        SetSwipe(playerCCView, false);
+
+        if (artifactCard == null)
+        {
+            Debug.LogError("Cannot return the pending player artifact because it is missing.");
+            SetPlayerTurn();
+            return;
+        }
+
+        Vector2 playerDeckPosition = playerDeckView.GetComponent<RectTransform>().anchoredPosition;
+        boardDeckView.ReturnCardToOwnerDeck(artifactCard, playerDeckPosition, returnedCard =>
+        {
+            if (returnedCard == null)
+            {
+                SetPlayerTurn();
+                return;
+            }
+
+            playerDeckView.AddCardsAndReshuffle(
+                new List<CardData> { returnedCard },
+                () =>
+                {
+                    currentTurn = Turn.Player;
+                    isBusy = false;
+                    DrawNextCard();
+                });
+        });
+    }
+
+    public void HandleTeacherDialogue1Choice(bool playerAgreed)
+    {
+        int cardsToSteal = playerAgreed ? 5 : 4;
+        isBusy = true;
+        SetSwipe(playerCCView, false);
+
+        if (artifactController == null)
+        {
+            Debug.LogError("Cannot process Teacher card theft because the ArtifactController reference is missing.");
+            dialogueController?.CompleteTeacherDialogueEffect();
+            return;
+        }
+
+        artifactController.TeacherTakeCards(
+            cardsToSteal,
+            () => dialogueController?.CompleteTeacherDialogueEffect());
+    }
+
+    public void HandleTeacherDialogue2Choice(bool playerAgreed)
+    {
+        isBusy = true;
+        SetSwipe(playerCCView, false);
+
+        if (!playerAgreed)
+        {
+            boardDeckView.ReturnBoardCardsToOwnerDecks(
+                playerDeckView.GetComponent<RectTransform>().anchoredPosition,
+                aiDeckView.GetComponent<RectTransform>().anchoredPosition,
+                (returnedPlayerCards, returnedAICards) =>
+            {
+                if (artifactController == null)
+                {
+                    Debug.LogError("Cannot steal a Teacher card because the ArtifactController reference is missing.");
+                    AddReturnedTeacherDialogueCards(
+                        returnedPlayerCards,
+                        returnedAICards,
+                        () => dialogueController?.CompleteTeacherDialogueEffect());
+                    return;
+                }
+
+                artifactController.PlayerStealCard(() =>
+                {
+                    AddReturnedTeacherDialogueCards(
+                        returnedPlayerCards,
+                        returnedAICards,
+                        () => dialogueController?.CompleteTeacherDialogueEffect());
+                });
+            });
+            return;
+        }
+
+        ReturnBoardCardsToOwnerDecks(() =>
+        {
+            dialogueController?.CompleteTeacherDialogueEffect();
+        });
+    }
+
+    private void AddReturnedTeacherDialogueCards(
+        List<CardData> returnedPlayerCards,
+        List<CardData> returnedAICards,
+        Action onComplete)
+    {
+        int reshufflesPending = 2;
+
+        void FinishReshuffle()
+        {
+            reshufflesPending--;
+            if (reshufflesPending == 0)
+            {
+                onComplete?.Invoke();
+            }
+        }
+
+        playerDeckView.AddCardsAndReshuffle(returnedPlayerCards, FinishReshuffle);
+        aiDeckView.AddCardsAndReshuffle(returnedAICards, FinishReshuffle);
     }
 
 

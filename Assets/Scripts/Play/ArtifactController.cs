@@ -205,4 +205,145 @@ public class ArtifactController : MonoBehaviour
             }
         });
     }
+
+    public void TeacherTakeCards(int cardCount, Action onComplete = null)
+    {
+        if (playerDeckView == null || aiDeckView == null || cardPrefab == null || boardTransform == null)
+        {
+            Debug.LogError("Cannot process batch steal because a deck, card prefab, or board reference is missing.");
+            onComplete?.Invoke();
+            return;
+        }
+
+        List<CardData> stolenCards = new List<CardData>();
+        List<CardView> stolenViews = new List<CardView>();
+        RectTransform playerDeckTransform = playerDeckView.GetComponent<RectTransform>();
+        RectTransform aiDeckTransform = aiDeckView.GetComponent<RectTransform>();
+
+        int cardsToSteal = Mathf.Min(cardCount, playerDeckView.GetCardCount());
+        for (int i = 0; i < cardsToSteal; i++)
+        {
+            CardData stolenData = playerDeckView.StolenCard();
+            if (stolenData == null) break;
+
+            CardView stolenCard = Instantiate(cardPrefab, boardTransform);
+            stolenCard.ShowFaceDown();
+
+            RectTransform cardTransform = stolenCard.GetComponent<RectTransform>();
+            cardTransform.anchoredPosition = playerDeckTransform.anchoredPosition;
+            cardTransform.localScale = Vector3.one;
+            cardTransform.SetAsLastSibling();
+
+            stolenCards.Add(stolenData);
+            stolenViews.Add(stolenCard);
+        }
+
+        if (stolenCards.Count == 0)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        Vector2 boardCenterPos = boardTransform.anchoredPosition;
+        float fanSpacing = 34f;
+        float fanRotation = 8f;
+        Sequence stealSequence = DOTween.Sequence();
+        Sequence fanSequence = DOTween.Sequence();
+        float fanCenter = (stolenViews.Count - 1) * 0.5f;
+
+        for (int i = 0; i < stolenViews.Count; i++)
+        {
+            RectTransform cardTransform = stolenViews[i].GetComponent<RectTransform>();
+            float fanOffset = i - fanCenter;
+            fanSequence.Join(cardTransform.DOAnchorPos(
+                boardCenterPos + new Vector2(fanOffset * fanSpacing, Mathf.Abs(fanOffset) * 4f),
+                0.4f).SetEase(Ease.OutQuad));
+            fanSequence.Join(cardTransform.DOScale(
+                1.2f,
+                0.4f).SetEase(Ease.OutQuad));
+            fanSequence.Join(cardTransform.DORotate(
+                new Vector3(0f, 0f, -fanOffset * fanRotation),
+                0.4f).SetEase(Ease.OutQuad));
+        }
+
+        stealSequence.Append(fanSequence);
+        stealSequence.AppendInterval(0.35f);
+        stealSequence.Append(AnimationController.Instance.GatherCards(stolenViews, boardCenterPos));
+
+        Sequence deliverSequence = DOTween.Sequence();
+        foreach (CardView stolenView in stolenViews)
+        {
+            if (stolenView == null) continue;
+
+            RectTransform cardTransform = stolenView.GetComponent<RectTransform>();
+            deliverSequence.Join(cardTransform.DOAnchorPos(
+                aiDeckTransform.anchoredPosition,
+                0.45f).SetEase(Ease.InBack));
+            deliverSequence.Join(cardTransform.DOScale(Vector3.zero, 0.45f).SetEase(Ease.InBack));
+        }
+
+        stealSequence.Append(deliverSequence);
+        stealSequence.OnComplete(() =>
+        {
+            foreach (CardView stolenView in stolenViews)
+            {
+                if (stolenView != null) Destroy(stolenView.gameObject);
+            }
+
+            aiDeckView.AddCardsAndReshuffle(stolenCards, onComplete);
+        });
+    }
+
+    public void PlayerStealCard(Action onComplete = null)
+    {
+        if (aiDeckView == null || playerDeckView == null || cardPrefab == null || boardTransform == null)
+        {
+            Debug.LogError("Cannot steal a Teacher card because a deck, card prefab, or board reference is missing.");
+            onComplete?.Invoke();
+            return;
+        }
+
+        CardData stolenData = aiDeckView.StolenCard();
+        if (stolenData == null)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        CardView stolenCard = Instantiate(cardPrefab, boardTransform);
+        stolenCard.ShowFaceDown();
+        stolenCard.SetCardFront(stolenData.cardFrontSprite);
+
+        RectTransform cardTransform = stolenCard.GetComponent<RectTransform>();
+        cardTransform.anchoredPosition = aiDeckView.GetComponent<RectTransform>().anchoredPosition;
+        cardTransform.localScale = Vector3.one;
+        cardTransform.SetAsLastSibling();
+
+        List<CardView> stolenCardList = new List<CardView> { stolenCard };
+        Vector3 boardCenterPos = boardTransform.anchoredPosition;
+
+        Sequence seq = DOTween.Sequence();
+
+        Sequence pullToCenter = DOTween.Sequence();
+        pullToCenter.Join(cardTransform.DOAnchorPos(boardCenterPos, 0.4f).SetEase(Ease.OutQuad));
+        pullToCenter.Join(cardTransform.DOScale(Vector3.one * 1.4f, 0.4f).SetEase(Ease.OutQuad));
+        seq.Append(pullToCenter);
+
+        seq.Append(AnimationController.Instance.FlipFaceUp(stolenCardList, 1.5f));
+        seq.AppendInterval(0.4f);
+        seq.Append(AnimationController.Instance.FlipFaceDown(stolenCardList, 1.5f));
+
+        Sequence deliverSeq = DOTween.Sequence();
+        deliverSeq.Join(cardTransform.DOAnchorPos(playerDeckView.GetComponent<RectTransform>().anchoredPosition, 0.45f).SetEase(Ease.InBack));
+        deliverSeq.Join(cardTransform.DOScale(Vector3.one, 0.3f).SetEase(Ease.InBack));
+        seq.Append(deliverSeq);
+
+        seq.AppendCallback(() =>
+        {
+            Destroy(stolenCard.gameObject);
+            playerDeckView.AddCardsWithoutRebuild(
+                new List<CardData> { stolenData },
+                onComplete);
+        });
+    }
 }

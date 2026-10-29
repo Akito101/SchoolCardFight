@@ -1454,7 +1454,7 @@ MonoBehaviour:
   - {fileID: 381750081}
   - {fileID: 1990961863}
   - {fileID: 2057541050}
-  battleScene: TestGamePlay
+  battleScene: Battle
   minigameScene: Minigame
   coinsText: {fileID: 1564011293}
   collectionPanel: {fileID: 1498358292}

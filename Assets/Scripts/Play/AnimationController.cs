@@ -93,7 +93,7 @@ public class AnimationController : MonoBehaviour
     {
         Sequence seq = DOTween.Sequence();
 
-        if (deckView == null || deckView.Count < 4)
+        if (deckView == null || deckView.Count < 3)
         {
             onComplete?.Invoke();
             return seq;

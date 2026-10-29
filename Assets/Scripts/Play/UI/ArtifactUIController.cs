@@ -106,7 +106,7 @@ public class ArtifactUIController : MonoBehaviour
         }
     }
 
-    private void HideAll()
+    public void HideAll()
     {
         HideNotificationObject(protectionActivationObj);
         HideNotificationObject(reshuffleActivationObj);

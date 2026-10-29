@@ -56,6 +56,48 @@ public class PlayerDeckView : MonoBehaviour
         RebuildDeckViews(onAnimationComplete);
     }
 
+    public void AddCardsWithoutRebuild(List<CardData> cards, System.Action onComplete = null)
+    {
+        if (cards == null || cards.Count == 0)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        playerDeckData.AddRange(cards);
+        onComplete?.Invoke();
+    }
+
+    public List<CardData> RemoveCards(List<CardData> cards, System.Action onAnimationComplete = null)
+    {
+        List<CardData> removedCards = new List<CardData>();
+        if (cards == null || cards.Count == 0)
+        {
+            onAnimationComplete?.Invoke();
+            return removedCards;
+        }
+
+        foreach (CardData card in cards)
+        {
+            int cardIndex = playerDeckData.IndexOf(card);
+            if (cardIndex < 0) continue;
+
+            removedCards.Add(playerDeckData[cardIndex]);
+            CardView cardView = playerDeckView[cardIndex];
+            playerDeckData.RemoveAt(cardIndex);
+            playerDeckView.RemoveAt(cardIndex);
+
+            if (cardView != null)
+            {
+                Destroy(cardView.gameObject);
+            }
+        }
+
+        RepositionStack();
+        RebuildDeckViews(onAnimationComplete);
+        return removedCards;
+    }
+
     private void RebuildDeckViews(System.Action onAnimationComplete)
     {
         // 1. Destroy any existing card views so old card views don't linger

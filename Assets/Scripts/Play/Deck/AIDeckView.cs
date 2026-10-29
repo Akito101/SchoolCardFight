@@ -224,6 +224,28 @@ public class AIDeckView : MonoBehaviour
         return stolenData;
     }
 
+    public CardData StolenCard()
+    {
+        if (aiDeckData.Count == 0) return null;
+
+        PlayDrawSound();
+
+        int randomIndex = Random.Range(0, aiDeckData.Count);
+        CardData stolenData = aiDeckData[randomIndex];
+        CardView stolenView = aiDeckView[randomIndex];
+
+        aiDeckData.RemoveAt(randomIndex);
+        aiDeckView.RemoveAt(randomIndex);
+
+        if (stolenView != null)
+        {
+            Destroy(stolenView.gameObject);
+        }
+
+        RepositionStack();
+        return stolenData;
+    }
+
     private void ClearDeck()
     {
         foreach (CardView card in aiDeckView)

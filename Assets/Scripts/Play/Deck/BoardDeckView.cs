@@ -36,6 +36,104 @@ public class BoardDeckView : MonoBehaviour
         return deckCopy;
     }
 
+    public List<CardData> GetCardsOwnedBy(BoardCardOwner owner)
+    {
+        List<CardData> cards = new List<CardData>();
+        foreach (var entry in boardEntries)
+        {
+            if (entry.owner == owner)
+            {
+                cards.Add(entry.cardData);
+            }
+        }
+
+        return cards;
+    }
+
+    public bool TryGetCardOwner(CardData cardData, out BoardCardOwner owner)
+    {
+        foreach (var entry in boardEntries)
+        {
+            if (entry.cardData == cardData)
+            {
+                owner = entry.owner;
+                return true;
+            }
+        }
+
+        owner = BoardCardOwner.Player;
+        return false;
+    }
+
+    public void ReturnCardsToOwnerDecks(
+        List<CardData> playerCardsToReturn,
+        List<CardData> aiCardsToReturn,
+        Vector2 playerDeckPosition,
+        Vector2 aiDeckPosition,
+        Action<List<CardData>, List<CardData>> onComplete)
+    {
+        List<CardData> playerCards = new List<CardData>();
+        List<CardData> aiCards = new List<CardData>();
+        List<CardView> cardViews = new List<CardView>();
+        List<Vector2> targetPositions = new List<Vector2>();
+
+        List<CardData> cardsToReturn = new List<CardData>(playerCardsToReturn);
+        cardsToReturn.AddRange(aiCardsToReturn);
+
+        foreach (CardData cardData in cardsToReturn)
+        {
+            int cardIndex = boardEntries.FindIndex(entry => entry.cardData == cardData);
+            if (cardIndex < 0) continue;
+
+            BoardCardEntry entry = boardEntries[cardIndex];
+            boardEntries.RemoveAt(cardIndex);
+
+            if (entry.owner == BoardCardOwner.Player)
+            {
+                playerCards.Add(entry.cardData);
+                targetPositions.Add(playerDeckPosition);
+            }
+            else
+            {
+                aiCards.Add(entry.cardData);
+                targetPositions.Add(aiDeckPosition);
+            }
+
+            if (entry.cardView != null) cardViews.Add(entry.cardView);
+        }
+
+        if (cardViews.Count == 0)
+        {
+            onComplete?.Invoke(playerCards, aiCards);
+            return;
+        }
+
+        PlayReturnSound();
+        Vector2 boardCenter = boardTransform.anchoredPosition;
+        Sequence returnSequence = DOTween.Sequence();
+        returnSequence.Append(AnimationController.Instance.GatherCards(cardViews, boardCenter));
+        returnSequence.Append(AnimationController.Instance.FlipFaceDown(cardViews));
+
+        Sequence moveSequence = DOTween.Sequence();
+        for (int i = 0; i < cardViews.Count; i++)
+        {
+            CardView cardView = cardViews[i];
+            RectTransform cardTransform = cardView.GetComponent<RectTransform>();
+            moveSequence.Join(cardTransform.DOAnchorPos(targetPositions[i], 0.45f).SetEase(Ease.InBack));
+        }
+
+        returnSequence.Append(moveSequence);
+        returnSequence.OnComplete(() =>
+        {
+            foreach (CardView cardView in cardViews)
+            {
+                if (cardView != null) Destroy(cardView.gameObject);
+            }
+
+            onComplete?.Invoke(playerCards, aiCards);
+        });
+    }
+
     private void Awake()
     {
         boardTransform = GetComponent<RectTransform>();
@@ -89,6 +187,47 @@ public class BoardDeckView : MonoBehaviour
         float cardRotation = UnityEngine.Random.Range(-15f, 15f);
 
         cardView.DrawCardAnimation(boardPosition, cardRotation, perspectiveScale, onAnimationComplete);
+    }
+
+    public void ReturnCardToOwnerDeck(
+        CardData cardData,
+        Vector2 targetPosition,
+        Action<CardData> onComplete)
+    {
+        int cardIndex = boardEntries.FindIndex(entry => entry.cardData == cardData);
+        if (cardIndex < 0)
+        {
+            Debug.LogWarning("Cannot return the requested card because it is not on the board.");
+            onComplete?.Invoke(null);
+            return;
+        }
+
+        BoardCardEntry entry = boardEntries[cardIndex];
+        boardEntries.RemoveAt(cardIndex);
+
+        if (entry.cardView == null)
+        {
+            onComplete?.Invoke(entry.cardData);
+            return;
+        }
+
+        PlayReturnSound();
+
+        CardView cardView = entry.cardView;
+        Vector3 boardCenterPos = boardTransform.anchoredPosition;
+        Sequence returnSeq = DOTween.Sequence();
+
+        returnSeq.Append(AnimationController.Instance.GatherCards(new List<CardView> { cardView }, boardCenterPos));
+        returnSeq.Append(AnimationController.Instance.FlipFaceDown(
+            new List<CardView> { cardView }));
+        returnSeq.Append(cardView.GetComponent<RectTransform>()
+            .DOAnchorPos(targetPosition, 0.45f)
+            .SetEase(Ease.InBack));
+        returnSeq.OnComplete(() =>
+        {
+            Destroy(cardView.gameObject);
+            onComplete?.Invoke(entry.cardData);
+        });
     }
 
     public void AddBoardDeckToWinnerDeck(Vector2 targetPosition, Action<List<CardData>> onComplete)
