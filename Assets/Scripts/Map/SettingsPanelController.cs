@@ -19,6 +19,13 @@ public class SettingsPanelController : MonoBehaviour
     public Button confirmNoButton;
     public string mainMenuScene = "MainMenu";
 
+    [Header("Return to map (optional, Yes/No popup)")]
+    public Button returnToMapButton;
+    public GameObject returnToMapPopup;    // leave empty to skip the confirmation
+    public Button returnToMapYesButton;
+    public Button returnToMapNoButton;
+    public string mapScene = "Map";        // <-- set this to your map scene's exact name
+
     [Header("Optional (Map scene only)")]
     public Button mainMenuButton;
     public GameObject debugRoot;           // the group holding the test buttons
@@ -39,6 +46,20 @@ public class SettingsPanelController : MonoBehaviour
         if (confirmYesButton != null)
             confirmYesButton.onClick.AddListener(OnResetConfirmed);
 
+        // Return to map: ask first if a popup is assigned, otherwise go straight there
+        if (returnToMapButton != null)
+        {
+            returnToMapButton.onClick.AddListener(() =>
+            {
+                if (returnToMapPopup != null) returnToMapPopup.SetActive(true);
+                else GoToMap();
+            });
+        }
+        if (returnToMapNoButton != null && returnToMapPopup != null)
+            returnToMapNoButton.onClick.AddListener(() => returnToMapPopup.SetActive(false));
+        if (returnToMapYesButton != null)
+            returnToMapYesButton.onClick.AddListener(GoToMap);
+
         if (mainMenuButton != null)
             mainMenuButton.onClick.AddListener(() => SceneManager.LoadScene(mainMenuScene));
     }
@@ -47,6 +68,7 @@ public class SettingsPanelController : MonoBehaviour
     void OnEnable()
     {
         if (confirmPopup != null) confirmPopup.SetActive(false);
+        if (returnToMapPopup != null) returnToMapPopup.SetActive(false);
 
         // show the saved values without triggering the change events
         musicSlider.SetValueWithoutNotify(GameAudio.MusicVolume);
@@ -92,6 +114,12 @@ public class SettingsPanelController : MonoBehaviour
     {
         ProgressReset.ResetAll();
         SceneManager.LoadScene(mainMenuScene);
+    }
+
+    private void GoToMap()
+    {
+        GameAudio.Save();
+        SceneManager.LoadScene(mapScene);
     }
 
     private void UpdateTexts()

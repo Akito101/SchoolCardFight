@@ -5,60 +5,60 @@ using UnityEngine.UI;
 public class ArtifactContainerController : MonoBehaviour
 {
     [Header("Artifact Icon References")]
-    [SerializeField] private GameObject artifact1;
-    [SerializeField] private GameObject artifact2;
-    [SerializeField] private GameObject artifact3;
+    [SerializeField] private GameObject artifact1;   // Protection
+    [SerializeField] private GameObject artifact2;   // Reshuffle
+    [SerializeField] private GameObject artifact3;   // Steal
 
-    private Color normalColor = Color.white;
-    private Color darkenedColor = new Color(0.4f, 0.4f, 0.4f, 1f);
+    private readonly Color lockedColor = Color.black;                     // not owned
+    private readonly Color dimColor = new Color(0.45f, 0.45f, 0.45f, 1f); // owned, not chosen
+    private readonly Color brightColor = Color.white;                     // chosen
+
+    public void UpdateSpellUI()
+    {
+        UpdateSpellUI(PlayerArtifactChoice.HasChoice
+            ? PlayerArtifactChoice.Effect
+            : ArtifactEffect.None);
+    }
 
     public void UpdateSpellUI(ArtifactEffect activeArtifact)
     {
-        // 1. Fetch owned artifacts from PlayerProgress storage
-        List<string> ownedArtifacts = PlayerProgress.GetOwnedArtifacts();
+        // Tutorial (level 0) owns nothing, so all three stay black
+        List<ArtifactEffect> owned = PlayerProgress.LevelSelected == 0
+            ? new List<ArtifactEffect>()
+            : GetOwnedArtifacts();
 
-        // 2. Check ownership for each specific artifact slot 
-        // (Note: Protection is treated as owned by default if the save list is completely empty for new players)
-        bool ownsProtection = ownedArtifacts.Contains(ArtifactEffect.Protection.ToString()) || ownedArtifacts.Count == 0;
-        bool ownsReshuffle = ownedArtifacts.Contains(ArtifactEffect.ReshuffleOpponentDeck.ToString());
-        bool ownsSteal = ownedArtifacts.Contains(ArtifactEffect.StealCard.ToString());
-
-        // 3. Enable or disable UI objects based on ownership
-        if (artifact1 != null) artifact1.SetActive(ownsProtection);
-        if (artifact2 != null) artifact2.SetActive(ownsReshuffle);
-        if (artifact3 != null) artifact3.SetActive(ownsSteal);
-
-        // 4. Reset all active ones to darkened first
-        SetGameObjectBrightness(artifact1, false);
-        SetGameObjectBrightness(artifact2, false);
-        SetGameObjectBrightness(artifact3, false);
-
-        // 5. Highlight only the currently active battle artifact
-        switch (activeArtifact)
-        {
-            case ArtifactEffect.Protection:
-                SetGameObjectBrightness(artifact1, true);
-                break;
-            case ArtifactEffect.ReshuffleOpponentDeck:
-                SetGameObjectBrightness(artifact2, true);
-                break;
-            case ArtifactEffect.StealCard:
-                SetGameObjectBrightness(artifact3, true);
-                break;
-            case ArtifactEffect.None:
-                break;
-        }
+        ApplySlot(artifact1, ArtifactEffect.Protection, owned, activeArtifact);
+        ApplySlot(artifact2, ArtifactEffect.ReshuffleOpponentDeck, owned, activeArtifact);
+        ApplySlot(artifact3, ArtifactEffect.StealCard, owned, activeArtifact);
     }
 
-    private void SetGameObjectBrightness(GameObject spellObj, bool isActive)
+    // Same logic as MapManager.GetOwnedArtifacts()
+    private List<ArtifactEffect> GetOwnedArtifacts()
     {
-        if (spellObj != null && spellObj.activeSelf)
+        List<ArtifactEffect> owned = new List<ArtifactEffect>();
+
+        LevelRewards rewards = Resources.Load<LevelRewards>("LevelRewards");
+        if (rewards == null) return owned;
+
+        int cleared = PlayerProgress.ClearedLevels;
+        for (int i = 0; i < cleared; i++)
         {
-            Image img = spellObj.GetComponent<Image>();
-            if (img != null)
-            {
-                img.color = isActive ? normalColor : darkenedColor;
-            }
+            LevelRewards.Reward r = rewards.Get(i);
+            if (r == null || r.artifact == ArtifactEffect.None) continue;
+            if (!owned.Contains(r.artifact)) owned.Add(r.artifact);
         }
+        return owned;
+    }
+
+    private void ApplySlot(GameObject slot, ArtifactEffect effect, List<ArtifactEffect> owned, ArtifactEffect active)
+    {
+        if (slot == null) return;
+        slot.SetActive(true);
+
+        Image img = slot.GetComponent<Image>();
+        if (img == null) return;
+
+        bool isOwned = owned.Contains(effect);
+        img.color = !isOwned ? lockedColor : (active == effect ? brightColor : dimColor);
     }
 }

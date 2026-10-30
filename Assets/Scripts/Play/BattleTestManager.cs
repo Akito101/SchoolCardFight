@@ -111,11 +111,10 @@ public class BattleTestManager : MonoBehaviour
             aiCards = generatedAIDeck;
         }
 
-        // Player's chosen artifact from the Map (if they came through the choice panel)
-        if (PlayerArtifactChoice.HasChoice)
-        {
-            playerArtifactEffect = PlayerArtifactChoice.Effect;
-        }
+        // Player's artifact: only what was chosen on the Map. No choice (tutorial) = no artifact.
+        playerArtifactEffect = PlayerArtifactChoice.HasChoice
+            ? PlayerArtifactChoice.Effect
+            : ArtifactEffect.None;
 
         playerWonCards.Clear();
 
