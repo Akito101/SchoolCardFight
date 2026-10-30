@@ -9,6 +9,7 @@ public class CollectionSlotView : MonoBehaviour
     public TextMeshProUGUI countText;
     public GameObject countBadge;        // optional
     public CardInspector inspector;      // optional: auto-found if left empty
+    public bool opensInspector = true;   // the Deck tab turns this off because it handles taps itself
 
     [Header("Shown for cards the player hasn't found yet")]
     public Sprite undiscoveredSprite;
@@ -73,6 +74,9 @@ public class CollectionSlotView : MonoBehaviour
 
     private void OnClicked()
     {
+        // The Deck tab decides what a tap does, so it switches this off
+        if (!opensInspector) return;
+
         // Only discovered cards open the inspector
         if (!currentDiscovered || currentData == null) return;
 
