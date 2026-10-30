@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: d1767e7e2ced8ef4d8da65592f80058e
   - enabled: 1
-    path: Assets/Scenes/Kalay.unity
+    path: Assets/Scenes/MangaScene/Kalay.unity
     guid: 6b5e849eb88f4b64ab368565e08d11b6
   - enabled: 1
     path: Assets/Scenes/Map.unity
@@ -27,13 +27,13 @@ EditorBuildSettings:
     path: Assets/Scenes/Battle.unity
     guid: 3bb4ab16d0a1040fba430f0be4e57040
   - enabled: 1
-    path: Assets/Scenes/ShaeKaKg.unity
+    path: Assets/Scenes/MangaScene/ShaeKaKg.unity
     guid: 7ecc39cd6bbad1c448400cd8eadc95de
   - enabled: 1
-    path: Assets/Scenes/Monitor.unity
+    path: Assets/Scenes/MangaScene/Monitor.unity
     guid: 40e85ba891579cf4ca9c8a1948005c07
   - enabled: 1
-    path: Assets/Scenes/SayaMa.unity
+    path: Assets/Scenes/MangaScene/SayaMa.unity
     guid: f0491c6454a8e524198055040826b9d3
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
