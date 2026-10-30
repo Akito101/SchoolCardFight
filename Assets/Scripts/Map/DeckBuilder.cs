@@ -160,7 +160,7 @@ public class DeckBuilder : MonoBehaviour
 
         deckTabButton.interactable = !showingDeck;
         inventoryTabButton.interactable = showingDeck;
-        inspectButtonText.text = inspectMode ? "Locked: ON" : "Locked: OFF";
+        inspectButtonText.text = inspectMode ? "Inspect: ON" : "Inspect: OFF";
 
         int inDeck = PlayerDeck.TotalInDeck();
         int max = MaxDeckSize();
