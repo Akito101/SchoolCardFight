@@ -267,7 +267,11 @@ public class BattleTestManager : MonoBehaviour
     {
         if (drawPlayerCard.isArtifact)
         {
-            playerUsedArtifactFirst = true;
+            if (!playerUsedArtifactFirst)
+            {
+                playerUsedArtifactFirst = true;
+            }
+
             if (!aiUsedArtifactFirst && !monitorDialogue2Triggered)
             {
                 pendingPlayerArtifactCard = drawPlayerCard;
