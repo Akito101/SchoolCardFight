@@ -50,8 +50,37 @@ public static class PlayerProgress
             PlayerPrefs.SetInt(ClearedLevelsKey, ClearedLevels + 1);
         }
 
+        InitializeGameData();
+
         PlayerPrefs.Save();
         SceneManager.LoadScene("Map");
+    }
+
+    public static void AddOwnedCard(string cardName)
+    {
+        if (string.IsNullOrEmpty(cardName))
+            return;
+
+        // 1. Get the player's currently owned cards.
+        List<string> ownedCards = GetOwnedBattleCards();
+
+        // 2. Add the new card, including duplicates.
+        ownedCards.Add(cardName);
+
+        // 3. Save the updated owned cards.
+        SaveOwnedBattleCards(ownedCards);
+
+        // 4. Get the collection book.
+        List<string> collection = GetCollectionBook();
+
+        // 5. Add the card only if it hasn't been discovered.
+        if (!collection.Contains(cardName))
+        {
+            collection.Add(cardName);
+            SaveCollectionBook(collection);
+        }
+
+        Debug.Log("Card saved: " + cardName);
     }
 
     public static void InitializeGameData()
