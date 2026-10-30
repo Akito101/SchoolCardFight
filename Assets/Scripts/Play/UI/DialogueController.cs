@@ -92,7 +92,7 @@ public class DialogueController : MonoBehaviour
                 break;
 
             case BattleTestManager.AIType.Monitor:
-                if (currentDeckCount < 14 && !hasTriggeredMonitorDialogue1)
+                if (currentDeckCount < 12 && !hasTriggeredMonitorDialogue1)
                 {
                     dialogueTriggered = TriggerAndTrackDialogue(1, ref hasTriggeredMonitorDialogue1, monitorAvatarRect, monitorDialogueBox1, monitorButtomBox1, onFinished);
                 }
