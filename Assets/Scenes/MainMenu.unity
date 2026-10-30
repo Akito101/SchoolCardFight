@@ -6016,8 +6016,8 @@ MonoBehaviour:
   confirmResetPopup: {fileID: 494620171}
   tutorialPanel: {fileID: 1139069811}
   packScene: PackOpening
-  introScene: VNIntro
-  battleScene: TestGamePlay
+  introScene: Kalay
+  battleScene: Battle
   mapScene: Map
 --- !u!4 &2045453680
 Transform:
