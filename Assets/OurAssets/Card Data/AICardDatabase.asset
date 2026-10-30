@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f13d4aa9ba8123448c0a6953917b0a8, type: 3}
+  m_Name: AICardDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::CardDatabase
+  allCards:
+  - {fileID: 11400000, guid: 5dfe315570d1447f8886910397fbd2e7, type: 2}
+  - {fileID: 11400000, guid: 56c2cf6daaf864b55bfdeadb4ea5d311, type: 2}
+  - {fileID: 11400000, guid: 9f2fd47987a5f485684c84db0eaa3e13, type: 2}
+  - {fileID: 11400000, guid: 63580397b0cb04a78b6de26b9dafba88, type: 2}
+  - {fileID: 11400000, guid: 0beb2caaa2f5340a4979246122930d58, type: 2}
+  - {fileID: 11400000, guid: d0175103e2b26428d975a8f7a60bc628, type: 2}
+  - {fileID: 11400000, guid: 35e10a8d8344f4a38a4a5f2f44d648df, type: 2}
+  - {fileID: 11400000, guid: 01bed7a67ae494f9cb85d99513985385, type: 2}
+  - {fileID: 11400000, guid: 2ce0e6f9774c04782a755095d5607ecd, type: 2}
+  - {fileID: 11400000, guid: e29e9f4972f934d4c9c94c1903296c45, type: 2}
+  - {fileID: 11400000, guid: 991203fae8c5b45218b0243d273416aa, type: 2}
+  - {fileID: 11400000, guid: bf1b6380f4d0945349f166b36ecd8a2d, type: 2}
+  - {fileID: 11400000, guid: b30dc87f59b174511aa39a49042c4aa7, type: 2}
+  - {fileID: 11400000, guid: a7b7afc3cd6884138bd641752395e95b, type: 2}
+  - {fileID: 11400000, guid: 76ba9d9c7771e4897a56612fec3c5064, type: 2}
+  - {fileID: 11400000, guid: dd375b530499442168bd49e35e6c8653, type: 2}
+  - {fileID: 11400000, guid: d60ab12da278f4bb9aaf3839871c3f47, type: 2}
+  - {fileID: 11400000, guid: cc8632c39a2ad4233bbfbb9dc630b09c, type: 2}
+  - {fileID: 11400000, guid: 934b010b082604d369aa697ca19fd13b, type: 2}
+  - {fileID: 11400000, guid: 81dce3ded8ff74047b37ef7c6311547b, type: 2}
+  - {fileID: 11400000, guid: 31aa184684fa741b39b328d479ec5421, type: 2}
+  - {fileID: 11400000, guid: 0e52bd3a5dd4144e2baf0cae184d4a77, type: 2}
+  uniqueCards:
+  - {fileID: 11400000, guid: 3522b767f42884e6b945f3094faf79c3, type: 2}
+  - {fileID: 11400000, guid: 978737a76ca5c4d7e900acdb0a6c7c1d, type: 2}
+  - {fileID: 11400000, guid: 28f8427a30c2f440fac00715426e5a59, type: 2}
+  oneStarWeight: 70
+  twoStarWeight: 25
+  threeStarWeight: 5

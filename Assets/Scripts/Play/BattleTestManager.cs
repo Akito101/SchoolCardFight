@@ -232,6 +232,8 @@ public class BattleTestManager : MonoBehaviour
     {
         if (matchOver || currentTurn != Turn.Player || isBusy) return;
 
+        EnsureCurrentCards();
+
         // 1: Draw and validate the player's next card.
         CardData drawPlayerCard = playerDeckView.DrawCard();
         if (drawPlayerCard == null) return;
@@ -897,6 +899,15 @@ public class BattleTestManager : MonoBehaviour
         }
     }
 
+    private void EnsureCurrentCards()
+    {
+        if (playerCCView == null && playerDeckView.GetCardCount() > 0)
+            UpdatePlayerCurrentCard();
+
+        if (aiCCView == null && aiDeckView.GetCardCount() > 0)
+            UpdateAICurrentCard();
+    }
+
     private void RestoreMissingCards()
     {
         if (!playerHasCard && playerDeckView.GetCardCount() > 0)
@@ -912,6 +923,8 @@ public class BattleTestManager : MonoBehaviour
 
     private void SetPlayerTurn()
     {
+        EnsureCurrentCards();
+
         currentTurn = Turn.Player;
         isBusy = false;
         SetSwipe(playerCCView, true);
