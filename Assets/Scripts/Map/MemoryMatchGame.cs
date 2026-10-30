@@ -12,7 +12,7 @@ public class MemoryMatchGame : MonoBehaviour
     public int baseReward = 25;
     public int mistakeBudget = 6;         // mistakes below this earn the bonus
     public int bonusPerSavedMistake = 0;  // 0 = no bonus. Try 8 for up to about 73 coins.
-    public float mismatchShowTime = 0.9f;
+    public float mismatchShowTime = 0.1f;
     public string mapScene = "Map";
 
     [Header("Data")]
