@@ -589,15 +589,15 @@ MonoBehaviour:
     ambience: {fileID: 0}
     voiceVolume: 0.6
   - picture: {fileID: 21300000, guid: da497574f5e63a049a2cf8691e62f8d5, type: 3}
-    voice: {fileID: 8300000, guid: d677fa65072578749a4c69229a1a237f, type: 3}
+    voice: {fileID: 8300000, guid: 3c1707585d21da2448619811371aa5bd, type: 3}
     ambience: {fileID: 0}
     voiceVolume: 0.6
   - picture: {fileID: 21300000, guid: 0653dbfb5af94e74e891de433826cf2b, type: 3}
-    voice: {fileID: 8300000, guid: b2d92705eef5cf04fb0e3227aadde829, type: 3}
+    voice: {fileID: 8300000, guid: 6c5b36a69b6a61949ad43b43e5da0e67, type: 3}
     ambience: {fileID: 0}
     voiceVolume: 0.6
   - picture: {fileID: 21300000, guid: ed7f8471b23779b4bb37b4b33359b161, type: 3}
-    voice: {fileID: 8300000, guid: 37e5eab62a671554d886c07869ea3d0b, type: 3}
+    voice: {fileID: 8300000, guid: f6027966bf3f2bb489157e94a8abae94, type: 3}
     ambience: {fileID: 0}
     voiceVolume: 0.6
   - picture: {fileID: 21300000, guid: e2eff17be490f3046954c2e41b2cdcd0, type: 3}

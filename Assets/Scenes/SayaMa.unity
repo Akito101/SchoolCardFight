@@ -589,11 +589,11 @@ MonoBehaviour:
     ambience: {fileID: 0}
     voiceVolume: 0.6
   - picture: {fileID: 21300000, guid: 0e214747fd7f58c498f68d0d44cf9a79, type: 3}
-    voice: {fileID: 0}
+    voice: {fileID: 8300000, guid: d677fa65072578749a4c69229a1a237f, type: 3}
     ambience: {fileID: 0}
     voiceVolume: 0.6
   - picture: {fileID: 21300000, guid: 6e2c1e39e15f6ff479a282ec3a85bd58, type: 3}
-    voice: {fileID: 0}
+    voice: {fileID: 8300000, guid: b2d92705eef5cf04fb0e3227aadde829, type: 3}
     ambience: {fileID: 0}
     voiceVolume: 0.6
   - picture: {fileID: 21300000, guid: 92447329286b606448845ae33ce29dfd, type: 3}
@@ -601,7 +601,7 @@ MonoBehaviour:
     ambience: {fileID: 0}
     voiceVolume: 0.6
   - picture: {fileID: 21300000, guid: 5ac7d7e5a81b520449873a52a59879c7, type: 3}
-    voice: {fileID: 0}
+    voice: {fileID: 8300000, guid: 37e5eab62a671554d886c07869ea3d0b, type: 3}
     ambience: {fileID: 0}
     voiceVolume: 0.6
   fadeTime: 0.3

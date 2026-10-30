@@ -44,7 +44,7 @@ MonoBehaviour:
     - RockPaperScissors
   - name: BossBattle
     clip: {fileID: 8300000, guid: 7fe515dd1e3be4e4694eb4951de76d0d, type: 3}
-    volume: 0.6
+    volume: 0.4
     scenes:
     - SayaMa
   fadeSeconds: 1
