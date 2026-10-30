@@ -50,6 +50,8 @@ public static class PlayerProgress
             PlayerPrefs.SetInt(ClearedLevelsKey, ClearedLevels + 1);
         }
 
+
+
         PlayerPrefs.Save();
         SceneManager.LoadScene("Map");
     }

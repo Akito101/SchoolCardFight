@@ -135,7 +135,7 @@ public class RockPaperScissorsGame : MonoBehaviour
         yield return new WaitForSeconds(0.6f);
 
         // 2. three pumps, like the real game
-        string[] beats = { "Sone...", "Swan..." };
+        string[] beats = { "Sone...", "San..." };
         Color[] beatColors = { Color.red, Color.cyan };
         for (int i = 0; i < beats.Length; i++)
         {
