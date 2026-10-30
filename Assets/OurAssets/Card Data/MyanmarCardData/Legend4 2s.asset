@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: Legend4 2s
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: ShinSawPu
+  cardName: Shin Saw Pu
   cardArt: {fileID: 21300000, guid: 8b1f514939bc94a50b264c986a4a6f66, type: 3}
   category: 1
   stars: 2

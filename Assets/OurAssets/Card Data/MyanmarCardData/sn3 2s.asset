@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: sn3 2s
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: PhyarLeik
+  cardName: Phyar Leik
   cardArt: {fileID: 21300000, guid: b3175c697e6104c60be6c42edb1eac40, type: 3}
   category: 2
   stars: 2

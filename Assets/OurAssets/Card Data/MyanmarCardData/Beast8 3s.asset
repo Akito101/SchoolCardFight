@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: Beast8 3s
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: Galon
+  cardName: Galon Min
   cardArt: {fileID: 21300000, guid: 12e9ae57ade7b41cbbf112a31d058ea5, type: 3}
   category: 3
   stars: 3

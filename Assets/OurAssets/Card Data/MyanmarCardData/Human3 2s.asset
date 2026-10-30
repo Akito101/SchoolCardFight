@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: Human3 2s
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: KoYin2
+  cardName: Ka Htein Ko Yin
   cardArt: {fileID: 21300000, guid: 1a6737ad49944453c9a8f968c5b9698c, type: 3}
   category: 4
   stars: 2

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: Spirit5 3s
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: ZawGyi2
+  cardName: Zaw Gyi.
   cardArt: {fileID: 21300000, guid: 52d0504b56f30499d8178826b6a464ff, type: 3}
   category: 0
   stars: 3

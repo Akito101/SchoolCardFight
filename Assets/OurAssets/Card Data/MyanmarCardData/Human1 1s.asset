@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: Human1 1s
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: SaYarWon
+  cardName: Sa Yar Won
   cardArt: {fileID: 21300000, guid: 740673ae805444fdd9f573197700fc9d, type: 3}
   category: 4
   stars: 1

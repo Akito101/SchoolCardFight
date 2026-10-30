@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29be874894c6a2e4bb000fd9e9d1904c, type: 3}
   m_Name: Spirit3 2s
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: ThaGyarMin
+  cardName: Tha Gyar Min
   cardArt: {fileID: 21300000, guid: b55f4d1894fe94db39c4783e40d30348, type: 3}
   category: 0
   stars: 2
