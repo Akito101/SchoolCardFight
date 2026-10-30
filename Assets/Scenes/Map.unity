@@ -1440,6 +1440,7 @@ RectTransform:
   - {fileID: 2146322736}
   - {fileID: 1938494166}
   - {fileID: 259563630}
+  - {fileID: 795936951}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1627,7 +1628,6 @@ RectTransform:
   - {fileID: 1142952323}
   - {fileID: 2131694332}
   - {fileID: 574031145}
-  - {fileID: 795936951}
   m_Father: {fileID: 202251800}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -6741,7 +6741,7 @@ RectTransform:
   - {fileID: 555390066}
   - {fileID: 569061048}
   - {fileID: 644137725}
-  m_Father: {fileID: 259563630}
+  m_Father: {fileID: 202251800}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -10791,8 +10791,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 50
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: cdd55167747ff5045a0606e57149d3ea, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: cdd55167747ff5045a0606e57149d3ea, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
