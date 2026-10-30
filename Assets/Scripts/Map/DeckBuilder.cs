@@ -76,7 +76,6 @@ public class DeckBuilder : MonoBehaviour
                 PlayerDeck.MoveToDeck(c.cardName);
             }
         }
-
     }
 
     private void TrimToLimit()
@@ -175,6 +174,7 @@ public class DeckBuilder : MonoBehaviour
             CardData card = entries[i].Key;
 
             CollectionSlotView slot = Instantiate(slotPrefab, gridParent);
+            slot.opensInspector = false;   // this screen decides what a tap does (move the card or inspect it)
             slot.Setup(card, true, entries[i].Value);
 
             Button btn = slot.GetComponent<Button>();
