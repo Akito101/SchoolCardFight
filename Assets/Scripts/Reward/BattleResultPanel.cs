@@ -295,18 +295,20 @@ public class BattleResultPanel : MonoBehaviour
             }
         }
 
-        foreach (CardData card in cardsToGive)
+        if (won)
         {
-            // 1. Add card count to the player's general card inventory
-            PlayerCollection.AddCard(card.cardName);
-
-            // 2. Automatically register and save the unique card to the Collection Book database!
-            SaveNewCardToCollection(card.cardName);
+            foreach (CardData card in cardsToGive)
+            {
+                PlayerCollection.AddCard(card.cardName);
+                SaveNewCardToCollection(card.cardName);
+            }
         }
-
-        foreach (CardData card in cardsToLose)
+        else
         {
-            PlayerCollection.RemoveCard(card.cardName);
+            foreach (CardData card in cardsToLose)
+            {
+                PlayerCollection.RemoveCard(card.cardName);
+            }
         }
     }
 
