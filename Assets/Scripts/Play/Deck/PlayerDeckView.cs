@@ -26,6 +26,11 @@ public class PlayerDeckView : MonoBehaviour
         return playerDeckData.Count;
     }
 
+    public List<CardData> GetRemainingDeckCards()
+    {
+        return new List<CardData>(playerDeckData);
+    }
+
     void Awake()
     {
         playerDeckTransform = GetComponent<RectTransform>();

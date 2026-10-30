@@ -578,14 +578,33 @@ public class BattleTestManager : MonoBehaviour
                     {
                         string realWinner = isPlayerWinner ? "Player" : "AI";
 
-                        Debug.Log(
-                            $"Match Over! Loser dropped to {loserCardCount} cards. " +
-                            $"🏆 {realWinner} wins the match!");
-
                         isBusy = true;
                         SetSwipe(playerCCView, false);
                         matchOver = true;
-                        resultPanel.ShowResult(isPlayerWinner, playerWonCards);
+
+                        List<CardData> lostCards = new List<CardData>();
+                        if (!isPlayerWinner)
+                        {
+                            List<CardData> survivingCards = playerDeckView.GetRemainingDeckCards();
+
+                            // Find cards that started in playerCards but are missing from survivingCards
+                            List<CardData> tempSurviving = new List<CardData>(survivingCards);
+                            foreach (CardData card in playerCards)
+                            {
+                                if (card == null) continue;
+                                int index = tempSurviving.FindIndex(c => c != null && c.cardName == card.cardName);
+                                if (index >= 0)
+                                {
+                                    tempSurviving.RemoveAt(index); // Match found, card survived
+                                }
+                                else
+                                {
+                                    lostCards.Add(card); // Card is missing, it was lost!
+                                }
+                            }
+                        }
+
+                        resultPanel.ShowResult(isPlayerWinner, playerWonCards, lostCards);
                         return;
                     }
 
@@ -927,6 +946,8 @@ public class BattleTestManager : MonoBehaviour
         isBusy = true;
         SetSwipe(playerCCView, false);
         DOTween.KillAll();
-        resultPanel.ShowResult(playerWon, playerWonCards);
+
+        List<CardData> lostCards = playerWon ? null : new List<CardData>(playerCards);
+        resultPanel.ShowResult(playerWon, playerWonCards, lostCards);
     }
 }

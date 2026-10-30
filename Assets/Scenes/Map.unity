@@ -1440,7 +1440,6 @@ RectTransform:
   - {fileID: 2146322736}
   - {fileID: 1938494166}
   - {fileID: 259563630}
-  - {fileID: 795936951}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1628,6 +1627,7 @@ RectTransform:
   - {fileID: 1142952323}
   - {fileID: 2131694332}
   - {fileID: 574031145}
+  - {fileID: 795936951}
   m_Father: {fileID: 202251800}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2281,7 +2281,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   enemyName: Kalay
-  minCards: 8
+  minCards: 10
   button: {fileID: 334417820}
   label: {fileID: 0}
   lockIcon: {fileID: 0}
@@ -2827,7 +2827,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   enemyName: Shae Ka Kg
-  minCards: 15
+  minCards: 10
   button: {fileID: 381750078}
   label: {fileID: 0}
   lockIcon: {fileID: 0}
@@ -2883,7 +2883,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -3510,7 +3510,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -5318,7 +5318,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -6741,7 +6741,7 @@ RectTransform:
   - {fileID: 555390066}
   - {fileID: 569061048}
   - {fileID: 644137725}
-  m_Father: {fileID: 202251800}
+  m_Father: {fileID: 259563630}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -10791,8 +10791,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 50
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: cdd55167747ff5045a0606e57149d3ea, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: cdd55167747ff5045a0606e57149d3ea, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -13957,7 +13957,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   enemyName: Monitor
-  minCards: 20
+  minCards: 15
   button: {fileID: 1990961860}
   label: {fileID: 0}
   lockIcon: {fileID: 0}
@@ -14634,7 +14634,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelNode
   enemyName: Saya Ma
-  minCards: 25
+  minCards: 20
   button: {fileID: 2057541047}
   label: {fileID: 0}
   lockIcon: {fileID: 0}

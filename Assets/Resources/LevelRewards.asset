@@ -22,18 +22,18 @@ MonoBehaviour:
   - stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
     coins: 50
     coinsOnLose: 25
-    deckSize: 15
+    deckSize: 10
     artifact: 2
     enemyArtifact: 2
   - stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
     coins: 100
     coinsOnLose: 25
-    deckSize: 20
+    deckSize: 15
     artifact: 3
     enemyArtifact: 3
   - stamp: {fileID: 21300000, guid: 708579a86e3dff9419e01f5e646f4c00, type: 3}
     coins: 100
     coinsOnLose: 25
-    deckSize: 25
+    deckSize: 20
     artifact: 0
     enemyArtifact: 3

@@ -304,7 +304,10 @@ public class BattleResultPanel : MonoBehaviour
             SaveNewCardToCollection(card.cardName);
         }
 
-        foreach (CardData card in cardsToLose) PlayerCollection.RemoveCard(card.cardName);
+        foreach (CardData card in cardsToLose)
+        {
+            PlayerCollection.RemoveCard(card.cardName);
+        }
     }
 
     public void SaveNewCardToCollection(string newCardName)
