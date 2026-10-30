@@ -75,6 +75,25 @@ public static class PlayerDeck
         return true;
     }
 
+    // Automatically populates the deck up to a specified limit if it is currently empty
+    public static void EnsureDeckPopulatedUpTo(int limit)
+    {
+        EnsureLoaded();
+        if (activeDeckCache.Count > 0) return; // Already has cards, do nothing
+
+        foreach (CardCount c in PlayerCollection.GetAll())
+        {
+            int owned = c.count;
+            for (int i = 0; i < owned; i++)
+            {
+                if (activeDeckCache.Count >= limit) break;
+                activeDeckCache.Add(c.cardName);
+            }
+            if (activeDeckCache.Count >= limit) break;
+        }
+        Save();
+    }
+
     public static void AddAllToDeck()
     {
         EnsureLoaded();
