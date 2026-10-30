@@ -17,15 +17,28 @@ public class CollectionSave
 
 public static class PlayerCollection
 {
-    private const string Key = "Collection";
     private static CollectionSave data;
 
     private static void EnsureLoaded()
     {
         if (data != null) return;
 
-        string json = PlayerPrefs.GetString(Key, "");
-        data = string.IsNullOrEmpty(json) ? new CollectionSave() : JsonUtility.FromJson<CollectionSave>(json);
+        data = new CollectionSave();
+
+        // 1. Load total owned card counts via PlayerProgress (OwnedCardsKey)
+        List<CardCount> savedOwnedCards = PlayerProgress.GetOwnedBattleCards();
+        if (savedOwnedCards != null)
+        {
+            data.cards = savedOwnedCards;
+        }
+
+        // 2. Load discovered collection book via PlayerProgress (CollectionBookKey)
+        List<string> savedDiscovered = PlayerProgress.GetCollectionBook();
+        if (savedDiscovered != null)
+        {
+            data.discovered = savedDiscovered;
+        }
+
         if (data.discovered == null) data.discovered = new List<string>();
 
         // Older saves: anything already owned counts as discovered
@@ -87,12 +100,13 @@ public static class PlayerCollection
     public static void Clear()
     {
         data = new CollectionSave();
-        PlayerPrefs.DeleteKey(Key);
+        Save();
     }
 
     private static void Save()
     {
-        PlayerPrefs.SetString(Key, JsonUtility.ToJson(data));
-        PlayerPrefs.Save();
+        // Delegate all persistence strictly to PlayerProgress database
+        PlayerProgress.SaveOwnedBattleCards(data.cards);
+        PlayerProgress.SaveCollectionBook(data.discovered);
     }
 }

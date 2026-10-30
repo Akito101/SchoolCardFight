@@ -120,12 +120,13 @@ public class BattleTestManager : MonoBehaviour
 
         // 2: Load the player's saved deck
         {
-            // The first time a level is played, the deck is exactly this level's size.
-            // A replay keeps the current deck, which is already sized for the next level.
             bool isReplay = PlayerProgress.LevelSelected < PlayerProgress.ClearedLevels;
             if (!isReplay && level != null && level.deckSize > 0)
             {
                 DeckLimit.TrimTo(level.deckSize, database);
+
+                // Cleanly delegate auto-population logic to PlayerDeck
+                PlayerDeck.EnsureDeckPopulatedUpTo(level.deckSize);
 
                 if (PlayerDeck.TotalInDeck() < level.deckSize)
                     Debug.LogWarning($"BattleTestManager: the deck has {PlayerDeck.TotalInDeck()} cards but this level needs {level.deckSize}.");

@@ -45,7 +45,6 @@ public class CollectionBook : MonoBehaviour
         foreach (CardData c in database.allCards)
         {
             if (c == null) continue;
-            if (c.isArtifact && !includeArtifacts) continue;
             cards.Add(c);
         }
 

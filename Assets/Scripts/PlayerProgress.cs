@@ -11,7 +11,7 @@ public static class PlayerProgress
     private const string OwnedCardsKey = "OwnedCardNames";
     private const string OwnedArtifactsKey = "OwnedArtifactsTypes";
     private const string CollectionBookKey = "CardCollection";
-    private const string BattleDecksKey = "BattleDecksSaved";
+    private const string BattleDeckKey = "BattleDeckSaved";
 
     public const int TotalLevels = 4;
     public static int Coins => PlayerPrefs.GetInt(CoinsKey, 0);
@@ -50,68 +50,26 @@ public static class PlayerProgress
             PlayerPrefs.SetInt(ClearedLevelsKey, ClearedLevels + 1);
         }
 
-        InitializeGameData();
+
 
         PlayerPrefs.Save();
         SceneManager.LoadScene("Map");
     }
 
-    public static void AddOwnedCard(string cardName)
-    {
-        if (string.IsNullOrEmpty(cardName))
-            return;
-
-        // 1. Get the player's currently owned cards.
-        List<string> ownedCards = GetOwnedBattleCards();
-
-        // 2. Add the new card, including duplicates.
-        ownedCards.Add(cardName);
-
-        // 3. Save the updated owned cards.
-        SaveOwnedBattleCards(ownedCards);
-
-        // 4. Get the collection book.
-        List<string> collection = GetCollectionBook();
-
-        // 5. Add the card only if it hasn't been discovered.
-        if (!collection.Contains(cardName))
-        {
-            collection.Add(cardName);
-            SaveCollectionBook(collection);
-        }
-
-        Debug.Log("Card saved: " + cardName);
-    }
-
-    public static void InitializeGameData()
-    {
-        // 1. Load Collection Book
-        List<string> savedCollection = GetCollectionBook();
-        if (savedCollection != null && savedCollection.Count > 0)
-        {
-
-        }
-
-        // 2. Load Battle Decks
-        List<string> savedDeck = GetOwnedBattleCards();
-        if (savedDeck != null && savedDeck.Count > 0)
-        {
-
-        }
-
-
-        Debug.Log("PlayerProgress: All game data loaded into memory successfully.");
-    }
-
     // Cards Management
-    public static List<string> GetOwnedBattleCards()
+    public static List<CardCount> GetOwnedBattleCards()
     {
-        return LoadStringList(OwnedCardsKey);
+        if (!PlayerPrefs.HasKey(OwnedCardsKey)) return new List<CardCount>();
+        string json = PlayerPrefs.GetString(OwnedCardsKey);
+        var wrapper = JsonUtility.FromJson<SerializationWrapper<CardCount>>(json);
+        return wrapper != null ? wrapper.items : new List<CardCount>();
     }
 
-    public static void SaveOwnedBattleCards(List<string> cardNames)
+    public static void SaveOwnedBattleCards(List<CardCount> cards)
     {
-        SaveStringList(OwnedCardsKey, cardNames);
+        string json = JsonUtility.ToJson(new SerializationWrapper<CardCount>(cards));
+        PlayerPrefs.SetString(OwnedCardsKey, json);
+        PlayerPrefs.Save();
     }
 
     // Artifact Management
@@ -134,6 +92,16 @@ public static class PlayerProgress
     public static void SaveCollectionBook(List<string> uniqueCardNames)
     {
         SaveStringList(CollectionBookKey, uniqueCardNames);
+    }
+
+    public static List<string> GetBattleDeckCards()
+    {
+        return LoadStringList(BattleDeckKey);
+    }
+
+    public static void SaveBattleDeckCards(List<string> deckCards)
+    {
+        SaveStringList(BattleDeckKey, deckCards);
     }
 
     // Helper methods for saving and loading lists of strings using JSON serialization

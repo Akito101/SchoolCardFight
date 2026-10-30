@@ -76,6 +76,7 @@ public class DeckBuilder : MonoBehaviour
                 PlayerDeck.MoveToDeck(c.cardName);
             }
         }
+
     }
 
     private void TrimToLimit()
