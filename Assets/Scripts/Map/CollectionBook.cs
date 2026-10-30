@@ -48,6 +48,14 @@ public class CollectionBook : MonoBehaviour
             if (c.isArtifact && !includeArtifacts) continue;
             cards.Add(c);
         }
+
+        // unique cards go at the end of the book
+        foreach (CardData c in database.uniqueCards)
+        {
+            if (c == null) continue;
+            if (cards.Contains(c)) continue;   // in case one is also in allCards
+            cards.Add(c);
+        }
     }
 
     private void ChangePage(int direction)

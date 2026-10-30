@@ -40,6 +40,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 81dce3ded8ff74047b37ef7c6311547b, type: 2}
   - {fileID: 11400000, guid: 31aa184684fa741b39b328d479ec5421, type: 2}
   - {fileID: 11400000, guid: 0e52bd3a5dd4144e2baf0cae184d4a77, type: 2}
+  uniqueCards:
+  - {fileID: 11400000, guid: 3522b767f42884e6b945f3094faf79c3, type: 2}
+  - {fileID: 11400000, guid: 978737a76ca5c4d7e900acdb0a6c7c1d, type: 2}
+  - {fileID: 11400000, guid: 28f8427a30c2f440fac00715426e5a59, type: 2}
   oneStarWeight: 70
   twoStarWeight: 25
   threeStarWeight: 5

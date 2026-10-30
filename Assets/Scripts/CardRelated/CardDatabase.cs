@@ -6,6 +6,9 @@ public class CardDatabase : ScriptableObject
 {
     public List<CardData> allCards = new List<CardData>();
 
+    [Header("Unique cards (not in packs, but shown in the Collection)")]
+    public List<CardData> uniqueCards = new List<CardData>();
+
     [Header("Pack drop rates (any numbers, they are shares of the total)")]
     public float oneStarWeight = 70f;
     public float twoStarWeight = 25f;
@@ -13,7 +16,10 @@ public class CardDatabase : ScriptableObject
 
     public CardData GetByName(string cardName)
     {
-        return allCards.Find(c => c != null && c.cardName == cardName);
+        CardData found = allCards.Find(c => c != null && c.cardName == cardName);
+        if (found != null) return found;
+
+        return uniqueCards.Find(c => c != null && c.cardName == cardName);
     }
 
     public float WeightFor(int stars)
@@ -26,7 +32,15 @@ public class CardDatabase : ScriptableObject
     void OnValidate()
     {
         HashSet<string> seen = new HashSet<string>();
+
         foreach (CardData c in allCards)
+        {
+            if (c == null) continue;
+            if (!seen.Add(c.cardName))
+                Debug.LogWarning($"CardDatabase: duplicate Card Name '{c.cardName}'. Every card needs a unique name!");
+        }
+
+        foreach (CardData c in uniqueCards)
         {
             if (c == null) continue;
             if (!seen.Add(c.cardName))
