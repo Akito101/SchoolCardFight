@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 public class ArtifactContainerController : MonoBehaviour
@@ -13,12 +14,26 @@ public class ArtifactContainerController : MonoBehaviour
 
     public void UpdateSpellUI(ArtifactEffect activeArtifact)
     {
-        // Reset all to darkened first
+        // 1. Fetch owned artifacts from PlayerProgress storage
+        List<string> ownedArtifacts = PlayerProgress.GetOwnedArtifacts();
+
+        // 2. Check ownership for each specific artifact slot 
+        // (Note: Protection is treated as owned by default if the save list is completely empty for new players)
+        bool ownsProtection = ownedArtifacts.Contains(ArtifactEffect.Protection.ToString()) || ownedArtifacts.Count == 0;
+        bool ownsReshuffle = ownedArtifacts.Contains(ArtifactEffect.ReshuffleOpponentDeck.ToString());
+        bool ownsSteal = ownedArtifacts.Contains(ArtifactEffect.StealCard.ToString());
+
+        // 3. Enable or disable UI objects based on ownership
+        if (artifact1 != null) artifact1.SetActive(ownsProtection);
+        if (artifact2 != null) artifact2.SetActive(ownsReshuffle);
+        if (artifact3 != null) artifact3.SetActive(ownsSteal);
+
+        // 4. Reset all active ones to darkened first
         SetGameObjectBrightness(artifact1, false);
         SetGameObjectBrightness(artifact2, false);
         SetGameObjectBrightness(artifact3, false);
 
-        // Highlight only the active one based on the player's chosen artifact
+        // 5. Highlight only the currently active battle artifact
         switch (activeArtifact)
         {
             case ArtifactEffect.Protection:
@@ -37,7 +52,7 @@ public class ArtifactContainerController : MonoBehaviour
 
     private void SetGameObjectBrightness(GameObject spellObj, bool isActive)
     {
-        if (spellObj != null)
+        if (spellObj != null && spellObj.activeSelf)
         {
             Image img = spellObj.GetComponent<Image>();
             if (img != null)

@@ -54,6 +54,26 @@ public static class PlayerProgress
         SceneManager.LoadScene("Map");
     }
 
+    public static void InitializeGameData()
+    {
+        // 1. Load Collection Book
+        List<string> savedCollection = GetCollectionBook();
+        if (savedCollection != null && savedCollection.Count > 0)
+        {
+
+        }
+
+        // 2. Load Battle Decks
+        List<string> savedDeck = GetOwnedBattleCards();
+        if (savedDeck != null && savedDeck.Count > 0)
+        {
+
+        }
+
+
+        Debug.Log("PlayerProgress: All game data loaded into memory successfully.");
+    }
+
     // Cards Management
     public static List<string> GetOwnedBattleCards()
     {
@@ -85,17 +105,6 @@ public static class PlayerProgress
     public static void SaveCollectionBook(List<string> uniqueCardNames)
     {
         SaveStringList(CollectionBookKey, uniqueCardNames);
-    }
-
-    // Saved Deck Management
-    public static List<string> GetBattleDeckCards()
-    {
-        return LoadStringList(BattleDecksKey);
-    }
-
-    public static void SaveBattleDeckCards(List<string> deckCardNames)
-    {
-        SaveStringList(BattleDecksKey, deckCardNames);
     }
 
     // Helper methods for saving and loading lists of strings using JSON serialization

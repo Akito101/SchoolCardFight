@@ -143,7 +143,13 @@ public class BoardDeckView : MonoBehaviour
     {
         foreach (var entry in boardEntries)
         {
-            if (entry.cardView != null) Destroy(entry.cardView.gameObject);
+            if (entry.cardView != null)
+            {
+                RectTransform rect = entry.cardView.GetComponent<RectTransform>();
+                if (rect != null) rect.DOKill();
+
+                Destroy(entry.cardView.gameObject);
+            }
         }
 
         boardEntries.Clear();
