@@ -267,7 +267,7 @@ public class ArtifactController : MonoBehaviour
         }
 
         stealSequence.Append(fanSequence);
-        stealSequence.AppendInterval(0.35f);
+        stealSequence.AppendInterval(0.4f);
         stealSequence.Append(AnimationController.Instance.GatherCards(stolenViews, boardCenterPos));
 
         Sequence deliverSequence = DOTween.Sequence();

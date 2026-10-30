@@ -7,9 +7,8 @@ using DG.Tweening;
 
 public class BattleResultPanel : MonoBehaviour
 {
-    [Header("Titles")]
-    public GameObject winTitle;
-    public GameObject loseTitle;
+    [Header("AI result UI")]
+    [SerializeField] private WinLoseUIController winLoseUIController;
 
     [Header("Stamp / level art (optional)")]
     public Image stampImage;
@@ -46,6 +45,7 @@ public class BattleResultPanel : MonoBehaviour
 
     private bool shown;
     private bool won;
+    private BattleTestManager.AIType aiType = BattleTestManager.AIType.Teacher;
     private int coinsToGive;
     private ArtifactEffect artifactToUnlock = ArtifactEffect.None;   // still unlocked, just not displayed
     private readonly List<CardData> cardsToGive = new List<CardData>();
@@ -54,6 +54,16 @@ public class BattleResultPanel : MonoBehaviour
 
     void Awake()
     {
+        if (winLoseUIController == null)
+        {
+            winLoseUIController = GetComponent<WinLoseUIController>();
+        }
+
+        if (winLoseUIController == null)
+        {
+            winLoseUIController = gameObject.AddComponent<WinLoseUIController>();
+        }
+
         rootGroup = GetComponent<CanvasGroup>();
         if (rootGroup == null) rootGroup = gameObject.AddComponent<CanvasGroup>();
 
@@ -68,12 +78,18 @@ public class BattleResultPanel : MonoBehaviour
         if (okayButton != null) okayButton.onClick.AddListener(OnOkayPressed);
     }
 
+    public void SetAIType(BattleTestManager.AIType type)
+    {
+        aiType = type;
+    }
+
     public void ShowResult(bool playerWon, List<CardData> wonCards = null, List<CardData> lostCards = null)
     {
         gameObject.SetActive(true);
         if (shown) return;
         shown = true;
         won = playerWon;
+        winLoseUIController?.ShowResult(aiType, playerWon);
 
         LevelRewards rewards = Resources.Load<LevelRewards>("LevelRewards");
         LevelRewards.Reward reward = rewards != null ? rewards.Get(PlayerProgress.LevelSelected) : null;
@@ -118,7 +134,7 @@ public class BattleResultPanel : MonoBehaviour
             HashSet<string> listed = new HashSet<string>();
             foreach (CardData c in cardsToGive)
             {
-                if (PlayerCollection.IsDiscovered(c.cardName)) continue;
+                if (PlayerCollection.GetCount(c.cardName) > 0) continue;
                 if (listed.Add(c.cardName)) cardsToShow.Add(c);
             }
         }
@@ -134,8 +150,6 @@ public class BattleResultPanel : MonoBehaviour
         }
 
         // reset what's on screen (all null-safe)
-        if (winTitle != null) winTitle.SetActive(won);
-        if (loseTitle != null) loseTitle.SetActive(!won);
         if (stampImage != null)
         {
             if (reward != null && reward.stamp != null) stampImage.sprite = reward.stamp;
@@ -157,12 +171,6 @@ public class BattleResultPanel : MonoBehaviour
         GameAudio.PlaySfx(won ? winSfx : loseSfx);
         MusicManager.StopMusic();
 
-        GameObject title = won ? winTitle : loseTitle;
-        if (title != null)
-        {
-            title.transform.localScale = Vector3.zero;
-            title.transform.DOScale(1f, 0.4f).SetEase(Ease.OutBack);
-        }
         yield return new WaitForSeconds(0.5f);
 
         if (stampImage != null && (won || showStampOnLose))

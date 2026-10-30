@@ -1,20 +1,9 @@
 using UnityEngine;
-using System.Collections;
 using DG.Tweening;
-using TMPro;
 
-public enum AIType
-{
-    Child,
-    Student,
-    Monitor,
-    Teacher
-}
+
 public class DialogueController : MonoBehaviour
 {
-    [Header("AI Configuration")]
-    [SerializeField] private AIType currentAIType = AIType.Monitor;
-
     [Header("Avatar Settings")]
     [SerializeField] private RectTransform teacherAvatarRect;
     [SerializeField] private RectTransform monitorAvatarRect;
@@ -35,7 +24,14 @@ public class DialogueController : MonoBehaviour
     [SerializeField] private BattleTestManager battleTestManager;
 
     public bool IsDialogueActive { get; private set; } = false;
-    public bool IsMonitorAI => currentAIType == AIType.Monitor;
+    public bool IsMonitorAI => currentAIType == BattleTestManager.AIType.Monitor;
+
+    private BattleTestManager.AIType currentAIType;
+
+    public void SetAIType(BattleTestManager.AIType aiType)
+    {
+        currentAIType = aiType;
+    }
 
     private RectTransform activeAvatarRect;
     private Vector2 avatarOriginalPos;
@@ -82,7 +78,7 @@ public class DialogueController : MonoBehaviour
 
         switch (currentAIType)
         {
-            case AIType.Teacher:
+            case BattleTestManager.AIType.Teacher:
                 if (currentDeckCount < 5 && !hasTriggeredTeacherDialogue1)
                 {
                     dialogueTriggered = TriggerAndTrackDialogue(
@@ -95,15 +91,15 @@ public class DialogueController : MonoBehaviour
                 }
                 break;
 
-            case AIType.Monitor:
+            case BattleTestManager.AIType.Monitor:
                 if (currentDeckCount < 14 && !hasTriggeredMonitorDialogue1)
                 {
                     dialogueTriggered = TriggerAndTrackDialogue(1, ref hasTriggeredMonitorDialogue1, monitorAvatarRect, monitorDialogueBox1, monitorButtomBox1, onFinished);
                 }
                 break;
 
-            case AIType.Child:
-            case AIType.Student:
+            case BattleTestManager.AIType.Child:
+            case BattleTestManager.AIType.Student:
                 break;
         }
 
@@ -113,9 +109,9 @@ public class DialogueController : MonoBehaviour
         }
     }
 
-    public bool CheckTeacherPlayerWinStreak(bool playerWon, System.Action onFinished = null)
+    public bool CheckPlayerWinStreak(bool playerWon, System.Action onFinished = null)
     {
-        if (currentAIType != AIType.Teacher)
+        if (currentAIType != BattleTestManager.AIType.Teacher)
         {
             return false;
         }
@@ -134,27 +130,8 @@ public class DialogueController : MonoBehaviour
 
         hasTriggeredTeacherDialogue2 = true;
         activeDialogueIndex = 2;
-        TriggerDialogueWithBlock(
-            teacherAvatarRect,
-            teacherDialogueBox2,
-            teacherButtomBox2,
-            onFinished);
+        TriggerDialogueWithBlock(teacherAvatarRect, teacherDialogueBox2, teacherButtomBox2, onFinished);
         return true;
-    }
-
-    public void TriggerMonitorDialogue2()
-    {
-        if (IsDialogueActive || hasTriggeredMonitorDialogue2) return;
-
-        if (currentAIType != AIType.Monitor) return;
-
-        hasTriggeredMonitorDialogue2 = true;
-        activeDialogueIndex = 2;
-
-        TriggerDialogueWithBlock(monitorAvatarRect, monitorDialogueBox2, monitorButtomBox2, () =>
-        {
-            Debug.Log("Monitor Dialogue 2 triggered via player first artifact completed.");
-        });
     }
 
     private bool TriggerAndTrackDialogue(int dialogueIndex, ref bool triggerFlag, RectTransform avatar, RectTransform aiBox, RectTransform playerBox, System.Action onFinished)
@@ -164,11 +141,25 @@ public class DialogueController : MonoBehaviour
 
         TriggerDialogueWithBlock(avatar, aiBox, playerBox, () =>
         {
-            Debug.Log($"{currentAIType} Dialogue {activeDialogueIndex} completed.");
             onFinished?.Invoke();
         });
 
         return true;
+    }
+
+    public void TriggerMonitorDialogue2()
+    {
+        if (IsDialogueActive || hasTriggeredMonitorDialogue2) return;
+
+        if (currentAIType != BattleTestManager.AIType.Monitor) return;
+
+        hasTriggeredMonitorDialogue2 = true;
+        activeDialogueIndex = 2;
+
+        TriggerDialogueWithBlock(monitorAvatarRect, monitorDialogueBox2, monitorButtomBox2, () =>
+        {
+            Debug.Log("Monitor Dialogue 2 triggered via player first artifact completed.");
+        });
     }
 
     public void TriggerDialogueWithBlock(RectTransform targetAvatar, RectTransform targetAIBox, RectTransform targetPlayerBox, System.Action onDialogueComplete)
@@ -228,93 +219,83 @@ public class DialogueController : MonoBehaviour
 
     public void HandlePlayerChoice(string choice)
     {
+        bool agreed = choice == "AGREE";
+
         switch (currentAIType)
         {
-            case AIType.Teacher:
-                if (activeDialogueIndex == 1)
-                {
-                    if (choice == "AGREE")
-                    {
-                        if (battleTestManager != null)
-                        {
-                            WaitForTeacherDialogueEffect();
-                            battleTestManager.HandleTeacherDialogue1Choice(true);
-                        }
-                    }
-                    else
-                    {
-                        if (battleTestManager != null)
-                        {
-                            WaitForTeacherDialogueEffect();
-                            battleTestManager.HandleTeacherDialogue1Choice(false);
-                        }
-                    }
-                }
-                else if (activeDialogueIndex == 2)
-                {
-                    if (choice == "AGREE")
-                    {
-                        if (battleTestManager != null)
-                        {
-                            WaitForTeacherDialogueEffect();
-                            battleTestManager.HandleTeacherDialogue2Choice(true);
-                        }
-                    }
-                    else
-                    {
-                        if (battleTestManager != null)
-                        {
-                            WaitForTeacherDialogueEffect();
-                            battleTestManager.HandleTeacherDialogue2Choice(false);
-                        }
-                    }
-                }
+            case BattleTestManager.AIType.Teacher:
+                HandleTeacherChoice(agreed);
                 break;
 
-            case AIType.Monitor:
-                if (activeDialogueIndex == 1)
-                {
-                    SuppressDialogueContinuation();
-                    if (choice == "AGREE")
-                    {
-                        if (battleTestManager != null)
-                        {
-                            battleTestManager.HandleMonitorDialogueAgree();
-                        }
-                    }
-                    else
-                    {
-                        if (battleTestManager != null)
-                        {
-                            battleTestManager.HandleMonitorDialogueDisagree();
-                        }
-                    }
-                }
-                else if (activeDialogueIndex == 2)
-                {
-                    if (choice == "AGREE")
-                    {
-                        if (battleTestManager != null)
-                        {
-                            battleTestManager.HandleMonitorDialogue2Agree();
-                        }
-                    }
-                    else
-                    {
-                        if (battleTestManager != null)
-                        {
-                            battleTestManager.HandleMonitorDialogue2Disagree();
-                        }
-                    }
-                }
+            case BattleTestManager.AIType.Monitor:
+                HandleMonitorChoice(agreed);
                 break;
 
-            case AIType.Child:
-            case AIType.Student:
+            case BattleTestManager.AIType.Child:
+            case BattleTestManager.AIType.Student:
                 break;
         }
 
         OnPlayerDialogueClicked();
+    }
+
+    private void HandleTeacherChoice(bool agreed)
+    {
+        if (battleTestManager == null) return;
+
+        if (activeDialogueIndex != 1 && activeDialogueIndex != 2)
+        {
+            return;
+        }
+
+        WaitForTeacherDialogueEffect();
+        if (activeDialogueIndex == 1)
+        {
+            battleTestManager.HandleTeacherDialogue1Choice(agreed);
+            return;
+        }
+
+        battleTestManager.HandleTeacherDialogue2Choice(agreed);
+    }
+
+    private void HandleMonitorChoice(bool agreed)
+    {
+        if (battleTestManager == null) return;
+
+        if (activeDialogueIndex == 1)
+        {
+            SuppressDialogueContinuation();
+            HandleMonitorDialogue1Choice(agreed);
+        }
+        else if (activeDialogueIndex == 2)
+        {
+            HandleMonitorDialogue2Choice(agreed);
+        }
+    }
+
+    private void HandleMonitorDialogue1Choice(bool agreed)
+    {
+        if (agreed)
+        {
+            battleTestManager.HandleMonitorDialogueAgree();
+        }
+        else
+        {
+            battleTestManager.HandleMonitorDialogueDisagree();
+        }
+    }
+
+
+    private void HandleMonitorDialogue2Choice(bool agreed)
+    {
+        if (agreed)
+        {
+            battleTestManager.HandleMonitorDialogue2Agree();
+        }
+        else
+        {
+            battleTestManager.HandleMonitorDialogue2Disagree();
+        }
     }
 
     public void WaitForTeacherDialogueEffect()
@@ -339,7 +320,6 @@ public class DialogueController : MonoBehaviour
     {
         if (!IsDialogueActive) return;
 
-        // When clicked, slide everything out of view and unlock interactions
         HideDialogue(() =>
         {
             IsDialogueActive = false;

@@ -7,22 +7,21 @@ public class LevelRewards : ScriptableObject
     [System.Serializable]
     public class Reward
     {
-        public Sprite stamp;                     // optional, only used if you assign a Stamp Image
-        public int coins = 50;                   // paid on every win
+        public Sprite stamp;
+        public int coins = 50;
         public int coinsOnLose = 0;
 
         [Header("Deck rules")]
-        public int deckSize = 10;   // exact number of cards the player fights with. 0 = no limit
+        public int deckSize = 10;
 
         [Header("First clear only")]
-        public ArtifactEffect artifact = ArtifactEffect.None;   // None = no artifact for this level
+        public ArtifactEffect artifact = ArtifactEffect.None;
 
         [Header("Enemy")]
-        public List<CardData> enemyDeck = new List<CardData>();
         public ArtifactEffect enemyArtifact = ArtifactEffect.None;
     }
 
-    public List<Reward> levels = new List<Reward>();   // index 0 = level 1 (the tutorial)
+    public List<Reward> levels = new List<Reward>();
 
     public Reward Get(int index)
     {
