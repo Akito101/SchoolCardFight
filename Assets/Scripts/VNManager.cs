@@ -24,7 +24,9 @@ public class VNManager : MonoBehaviour
 
     [Header("Buttons")]
     public Button tapArea;
-    public Button skipButton;
+    public Button skipButton;                 // optional: leave empty if you don't want a skip button
+    public bool allowSkip = true;             // untick to hide the skip button
+    public bool skipOnlyIfSeenBefore = false; // tick to show Skip only on replays, not the first time
 
     [Header("Audio")]
     public AudioSource voiceSource;      // optional: created automatically if empty
@@ -42,7 +44,15 @@ public class VNManager : MonoBehaviour
         if (ambienceSource == null) ambienceSource = CreateSource(true);
 
         tapArea.onClick.AddListener(OnTap);
-        skipButton.onClick.AddListener(GoToNextScene);
+
+        if (skipButton != null)
+        {
+            bool seenBefore = PlayerPrefs.GetInt("IntroSeen", 0) == 1;
+            bool showSkip = allowSkip && (!skipOnlyIfSeenBefore || seenBefore);
+
+            skipButton.gameObject.SetActive(showSkip);
+            if (showSkip) skipButton.onClick.AddListener(GoToNextScene);
+        }
     }
 
     void Start()
@@ -123,6 +133,10 @@ public class VNManager : MonoBehaviour
 
     private void GoToNextScene()
     {
+        // the Main Menu uses this flag to know the intro has been seen
+        PlayerPrefs.SetInt("IntroSeen", 1);
+        PlayerPrefs.Save();
+
         voiceSource.Stop();
         SceneManager.LoadScene(nextScene);
     }

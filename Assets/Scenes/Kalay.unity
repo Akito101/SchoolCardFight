@@ -328,6 +328,8 @@ MonoBehaviour:
   overlayImage: {fileID: 1161167422}
   tapArea: {fileID: 1261842596}
   skipButton: {fileID: 0}
+  allowSkip: 0
+  skipOnlyIfSeenBefore: 0
   voiceSource: {fileID: 0}
   ambienceSource: {fileID: 0}
   ambienceVolume: 0.5
