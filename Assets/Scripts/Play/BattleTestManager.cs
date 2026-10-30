@@ -46,6 +46,17 @@ public class BattleTestManager : MonoBehaviour
     [SerializeField] private AIType currentAIType = AIType.Teacher;
     [SerializeField] private AILevelDeck aiLevelDeck;
 
+    [System.Serializable]
+    public class BattleMusic
+    {
+        public AIType aiType;
+        public AudioClip clip;
+        [Range(0f, 1f)] public float volume = 1f;
+    }
+
+    [Header("Battle music override (leave empty to use the MusicLibrary track)")]
+    [SerializeField] private List<BattleMusic> battleMusic = new List<BattleMusic>();
+
 
     private ArtifactController artifactController;
     private CardView playerCCView; // player current card view
@@ -70,6 +81,8 @@ public class BattleTestManager : MonoBehaviour
 
     private void Awake()
     {
+        ApplyBattleMusicOverride();   // before the scene-loaded step, so the song isn't swapped
+
         artifactController = GetComponent<ArtifactController>();
         aiLevelDeck ??= GetComponent<AILevelDeck>();
     }
@@ -83,19 +96,18 @@ public class BattleTestManager : MonoBehaviour
         backgroundController?.SetBackgroundForAI(currentAIType);
         resultPanel?.SetAIType(currentAIType);
 
-        // Load AI Deck
-        List<CardData> generatedAIDeck = aiLevelDeck?.CreateDeck(currentAIType);
-        if (generatedAIDeck != null && generatedAIDeck.Count > 0)
-        {
-            // aiCards = generatedAIDeck;
-        }
-
         // Load AI Artifact
         LevelRewards rewards = Resources.Load<LevelRewards>("LevelRewards");
         LevelRewards.Reward level = rewards != null ? rewards.Get(PlayerProgress.LevelSelected) : null;
         if (level != null)
         {
             aiArtifactEffect = level.enemyArtifact;
+        }
+
+        // Player's chosen artifact from the Map (if they came through the choice panel)
+        if (PlayerArtifactChoice.HasChoice)
+        {
+            playerArtifactEffect = PlayerArtifactChoice.Effect;
         }
 
         playerWonCards.Clear();
@@ -135,6 +147,25 @@ public class BattleTestManager : MonoBehaviour
 
         // 4: Display the player's artifact Container.
         artifactContainerController.UpdateSpellUI(playerArtifactEffect);
+    }
+
+    // Picks the final boss song before MusicManager looks at the library
+    private void ApplyBattleMusicOverride()
+    {
+        AIType type = GetAITypeForLevel(PlayerProgress.LevelSelected);
+        Debug.Log($"Battle music check: level {PlayerProgress.LevelSelected} = {type}, entries = {battleMusic.Count}");
+
+        foreach (BattleMusic m in battleMusic)
+        {
+            if (m.aiType == type && m.clip != null)
+            {
+                Debug.Log($"Battle music override set: {m.clip.name}");
+                MusicManager.SetSceneOverride(m.clip, m.volume);
+                return;
+            }
+        }
+
+        Debug.Log("Battle music: no override found, using the library track.");
     }
 
     public AIType GetAITypeForLevel(int level)

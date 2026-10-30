@@ -12,7 +12,7 @@ public class SettingsPanelController : MonoBehaviour
     public TextMeshProUGUI sfxText;
     public AudioClip sfxPreviewClip;       // optional, plays while you move the SFX slider
 
-    [Header("Reset progress")]
+    [Header("Reset progress (optional, leave all empty in the battle scene)")]
     public Button resetButton;
     public GameObject confirmPopup;
     public Button confirmYesButton;
@@ -32,9 +32,12 @@ public class SettingsPanelController : MonoBehaviour
         musicSlider.onValueChanged.AddListener(OnMusicChanged);
         sfxSlider.onValueChanged.AddListener(OnSfxChanged);
 
-        resetButton.onClick.AddListener(() => confirmPopup.SetActive(true));
-        confirmNoButton.onClick.AddListener(() => confirmPopup.SetActive(false));
-        confirmYesButton.onClick.AddListener(OnResetConfirmed);
+        if (resetButton != null && confirmPopup != null)
+            resetButton.onClick.AddListener(() => confirmPopup.SetActive(true));
+        if (confirmNoButton != null && confirmPopup != null)
+            confirmNoButton.onClick.AddListener(() => confirmPopup.SetActive(false));
+        if (confirmYesButton != null)
+            confirmYesButton.onClick.AddListener(OnResetConfirmed);
 
         if (mainMenuButton != null)
             mainMenuButton.onClick.AddListener(() => SceneManager.LoadScene(mainMenuScene));
@@ -43,7 +46,7 @@ public class SettingsPanelController : MonoBehaviour
     // Runs every time the panel opens
     void OnEnable()
     {
-        confirmPopup.SetActive(false);
+        if (confirmPopup != null) confirmPopup.SetActive(false);
 
         // show the saved values without triggering the change events
         musicSlider.SetValueWithoutNotify(GameAudio.MusicVolume);
@@ -93,7 +96,7 @@ public class SettingsPanelController : MonoBehaviour
 
     private void UpdateTexts()
     {
-        musicText.text = $"Music  {Mathf.RoundToInt(musicSlider.value * 100)}%";
-        sfxText.text = $"Sound Effects  {Mathf.RoundToInt(sfxSlider.value * 100)}%";
+        if (musicText != null) musicText.text = $"Music  {Mathf.RoundToInt(musicSlider.value * 100)}%";
+        if (sfxText != null) sfxText.text = $"Sound Effects  {Mathf.RoundToInt(sfxSlider.value * 100)}%";
     }
 }

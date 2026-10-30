@@ -27,8 +27,10 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 7b4fa6d48f287f748814f5d499ea662b, type: 3}
     volume: 0.2
     scenes:
-    - VNIntro
+    - Kalay
     - Battle
+    - ShaeKaKg
+    - Monitor
   - name: PackOpening
     clip: {fileID: 8300000, guid: 6f34550a67286b44c95fa6d63cb8009d, type: 3}
     volume: 0.4
@@ -40,4 +42,9 @@ MonoBehaviour:
     scenes:
     - MemoryMatch
     - RockPaperScissors
+  - name: BossBattle
+    clip: {fileID: 8300000, guid: 7fe515dd1e3be4e4694eb4951de76d0d, type: 3}
+    volume: 0.6
+    scenes:
+    - SayaMa
   fadeSeconds: 1

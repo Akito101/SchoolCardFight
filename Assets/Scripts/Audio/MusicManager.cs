@@ -17,6 +17,10 @@ public class MusicManager : MonoBehaviour
     private int active = 0;
     private AudioClip currentClip;
 
+    // set by a scene's Awake, used instead of the library for that scene load
+    private static AudioClip pendingClip;
+    private static float pendingVolume = 1f;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Create()
     {
@@ -45,6 +49,14 @@ public class MusicManager : MonoBehaviour
         instance.currentClip = null;   // so the next scene's song starts again, even if it's the same clip
     }
 
+    // Call this in a scene's Awake(). This scene uses this song instead of its library track.
+    // If the same song is already playing (like from the VN), it just keeps playing without restarting.
+    public static void SetSceneOverride(AudioClip clip, float volume = 1f)
+    {
+        pendingClip = clip;
+        pendingVolume = volume;
+    }
+
     private void Setup()
     {
         for (int i = 0; i < voices.Length; i++)
@@ -57,37 +69,53 @@ public class MusicManager : MonoBehaviour
         }
 
         SceneManager.sceneLoaded += OnSceneLoaded;
-        PlayForScene(SceneManager.GetActiveScene().name);
+        ApplySceneMusic(SceneManager.GetActiveScene().name);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        PlayForScene(scene.name);
+        ApplySceneMusic(scene.name);
     }
 
-    private void PlayForScene(string sceneName)
+    private void ApplySceneMusic(string sceneName)
     {
+        // the scene asked for its own song: use it and skip the library
+        if (pendingClip != null)
+        {
+            AudioClip clip = pendingClip;
+            float volume = pendingVolume;
+            pendingClip = null;
+
+            CrossfadeTo(clip, volume);
+            return;
+        }
+
         MusicLibrary.Track track = library.Find(sceneName);
         if (track == null) return;   // no entry for this scene: keep whatever is playing
 
-        // same song as before (like the intro going into the battle): let it keep playing
-        if (track.clip == currentClip)
+        CrossfadeTo(track.clip, track.volume);
+    }
+
+    private void CrossfadeTo(AudioClip clip, float volume)
+    {
+        // same song as before: let it keep playing, no restart
+        if (clip == currentClip)
         {
-            voices[active].clipVolume = track.volume;
+            voices[active].clipVolume = volume;
             return;
         }
 
         voices[active].target = 0f;   // fade the old song out
 
-        currentClip = track.clip;
+        currentClip = clip;
         active = 1 - active;
         Voice next = voices[active];
-        next.clipVolume = track.volume;
+        next.clipVolume = volume;
         next.level = 0f;
 
-        if (track.clip != null)
+        if (clip != null)
         {
-            next.source.clip = track.clip;
+            next.source.clip = clip;
             next.source.Play();
             next.target = 1f;
         }

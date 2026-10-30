@@ -95,23 +95,21 @@ public class PackOpener : MonoBehaviour
     {
         if (sfxSource == null || ripRiserClip == null) return;
         sfxSource.pitch = 1f;
-        sfxSource.PlayOneShot(ripRiserClip);
+        sfxSource.PlayOneShot(ripRiserClip, GameAudio.SfxVolume);
     }
 
-    // AUDIO
     private void PlayCardFlip(int flipNumber)
     {
         if (sfxSource == null || cardFlipClip == null) return;
         sfxSource.pitch = Mathf.Min(1f + flipNumber * flipPitchStep, maxFlipPitch);
-        sfxSource.PlayOneShot(cardFlipClip);
+        sfxSource.PlayOneShot(cardFlipClip, GameAudio.SfxVolume);
     }
 
-    // AUDIO
     private void PlaySpecial(AudioClip clip)
     {
         if (sfxSource == null || clip == null) return;
         sfxSource.pitch = 1f;
-        sfxSource.PlayOneShot(clip);
+        sfxSource.PlayOneShot(clip, GameAudio.SfxVolume);
     }
 
     // The pack floats and waits to be tapped
@@ -184,8 +182,8 @@ public class PackOpener : MonoBehaviour
 
         // shake and swell, then burst and fade
         Sequence rip = DOTween.Sequence();
-        rip.Append(pack.DOShakeRotation(0.7f, new Vector3(0f, 0f, 20f), 30, 90f));
-        rip.Join(pack.DOScale(packStartScale * 1.15f, 0.7f).SetEase(Ease.InQuad));
+        rip.Append(pack.DOShakeRotation(1.2f, new Vector3(0f, 0f, 20f), 30, 90f));
+        rip.Join(pack.DOScale(packStartScale * 1.15f, 1.2f).SetEase(Ease.InQuad));
         rip.Append(pack.DOScale(packStartScale * 1.5f, 0.2f).SetEase(Ease.OutQuad));
         rip.Join(packGroup.DOFade(0f, 0.2f));
         yield return rip.WaitForCompletion();

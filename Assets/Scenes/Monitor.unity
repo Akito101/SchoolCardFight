@@ -335,6 +335,150 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1000681596
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1000681599}
+  - component: {fileID: 1000681598}
+  - component: {fileID: 1000681597}
+  m_Layer: 0
+  m_Name: ButtonManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1000681597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000681596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ccaa025dc2b985488815c3f6b815bd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+  clickSound: {fileID: 8300000, guid: e5025e5a0deb1d44cad5dedd1fdef5a7, type: 3}
+  volume: 1
+--- !u!82 &1000681598
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000681596}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!4 &1000681599
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000681596}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4282.449, y: 0.00001, z: 20072.299}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1161167419
 GameObject:
   m_ObjectHideFlags: 0
@@ -440,26 +584,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VNManager
   steps:
-  - picture: {fileID: 21300000, guid: 72f15f747903944469dbfec5121f979c, type: 3}
+  - picture: {fileID: 21300000, guid: 29d759ec49e81bc4d94703edaa3a7d52, type: 3}
     voice: {fileID: 0}
     ambience: {fileID: 0}
-    voiceVolume: 0.8
-  - picture: {fileID: 21300000, guid: 63fb13605455464448cae677db6258a5, type: 3}
-    voice: {fileID: 8300000, guid: a0eb830b8b967e6469773cdea15b42bc, type: 3}
+    voiceVolume: 0.6
+  - picture: {fileID: 21300000, guid: da497574f5e63a049a2cf8691e62f8d5, type: 3}
+    voice: {fileID: 8300000, guid: d677fa65072578749a4c69229a1a237f, type: 3}
     ambience: {fileID: 0}
-    voiceVolume: 0.8
-  - picture: {fileID: 21300000, guid: a92729f2f83c9684aacb0d58d24bd828, type: 3}
-    voice: {fileID: 0}
+    voiceVolume: 0.6
+  - picture: {fileID: 21300000, guid: 0653dbfb5af94e74e891de433826cf2b, type: 3}
+    voice: {fileID: 8300000, guid: b2d92705eef5cf04fb0e3227aadde829, type: 3}
     ambience: {fileID: 0}
-    voiceVolume: 0.8
-  - picture: {fileID: 21300000, guid: 4ff9f3a3647c02f4cbbae46535854f49, type: 3}
-    voice: {fileID: 8300000, guid: e3c6541b3fd3f8a46bf8cc5956a87ba8, type: 3}
+    voiceVolume: 0.6
+  - picture: {fileID: 21300000, guid: ed7f8471b23779b4bb37b4b33359b161, type: 3}
+    voice: {fileID: 8300000, guid: 37e5eab62a671554d886c07869ea3d0b, type: 3}
     ambience: {fileID: 0}
-    voiceVolume: 0.8
-  - picture: {fileID: 21300000, guid: e5ea4da79352c39468015df59e413554, type: 3}
-    voice: {fileID: 8300000, guid: 29acb09f81449d24ba56ce5030fc5ebe, type: 3}
+    voiceVolume: 0.6
+  - picture: {fileID: 21300000, guid: e2eff17be490f3046954c2e41b2cdcd0, type: 3}
+    voice: {fileID: 8300000, guid: 785b423101549124fa2c8691a2192b63, type: 3}
     ambience: {fileID: 0}
-    voiceVolume: 1
+    voiceVolume: 0.6
   fadeTime: 0.3
   baseImage: {fileID: 1740145135}
   overlayImage: {fileID: 1161167422}
@@ -881,6 +1025,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1000681597}
+        m_TargetAssemblyTypeName: ButtonClickSound, Assembly-CSharp
+        m_MethodName: PlayClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1650289431
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1222,3 +1378,4 @@ SceneRoots:
   - {fileID: 1444133773}
   - {fileID: 931088349}
   - {fileID: 1198376442}
+  - {fileID: 1000681599}

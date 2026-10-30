@@ -7,12 +7,13 @@ public class CollectionSlotView : MonoBehaviour
     public Image artImage;
     public TextMeshProUGUI nameText;     // optional: leave empty if the card has no name bar
     public TextMeshProUGUI countText;
+    public GameObject countBadge;        // optional: the badge/background behind the number, if there is one
 
     [Header("Shown for cards the player hasn't found yet")]
     public Sprite undiscoveredSprite;
     [Range(0f, 1f)] public float undiscoveredBrightness = 0.5f;   // 1 = original picture, 0 = pure black
 
-    public void Setup(CardData data, bool discovered, int ownedCount)
+    public void Setup(CardData data, bool discovered, int ownedCount, bool showCount = true)
     {
         if (!discovered)
         {
@@ -36,7 +37,7 @@ public class CollectionSlotView : MonoBehaviour
             }
 
             SetName("???");
-            SetCount("");
+            SetCount("", false);
             return;
         }
 
@@ -52,7 +53,7 @@ public class CollectionSlotView : MonoBehaviour
         }
 
         SetName($"{data.cardName}\n({data.category})");
-        SetCount($"x{ownedCount}");   // x0 means you found it before but don't own it now
+        SetCount($"x{ownedCount}", showCount);   // x0 means you found it before but don't own it now
     }
 
     private void SetName(string text)
@@ -60,8 +61,15 @@ public class CollectionSlotView : MonoBehaviour
         if (nameText != null) nameText.text = text;
     }
 
-    private void SetCount(string text)
+    private void SetCount(string text, bool visible)
     {
-        if (countText != null) countText.text = text;
+        if (countText != null)
+        {
+            countText.text = visible ? text : "";
+            countText.gameObject.SetActive(visible && !string.IsNullOrEmpty(text));
+        }
+
+        if (countBadge != null)
+            countBadge.SetActive(visible && !string.IsNullOrEmpty(text));
     }
 }

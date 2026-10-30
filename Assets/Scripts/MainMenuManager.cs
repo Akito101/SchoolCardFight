@@ -7,6 +7,7 @@ public class MainMenuManager : MonoBehaviour
     public GameObject optionsPanel;
     public GameObject creditsPanel;
     public GameObject confirmResetPopup;
+    public TutorialPanel tutorialPanel;
 
     public string packScene = "PackOpening";
     public string introScene = "VNIntro";
@@ -30,6 +31,26 @@ public class MainMenuManager : MonoBehaviour
 
     // Sends the player to the right step: packs, then intro, then the first battle, then the Map
     public void OnPlayPressed()
+    {
+        bool firstTime = PlayerPrefs.GetInt("FirstBattleDone", 0) == 0;
+        bool tutorialSeen = PlayerPrefs.GetInt("TutorialSeen", 0) == 1;
+
+        // the very first time: show the tutorial pages, and carry on when the player presses Play on the last one
+        if (firstTime && !tutorialSeen && tutorialPanel != null)
+        {
+            tutorialPanel.Open(() =>
+            {
+                PlayerPrefs.SetInt("TutorialSeen", 1);
+                PlayerPrefs.Save();
+                GoToNextStep();
+            });
+            return;
+        }
+
+        GoToNextStep();
+    }
+
+    private void GoToNextStep()
     {
         string target;
 

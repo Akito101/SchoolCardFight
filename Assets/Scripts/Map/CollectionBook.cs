@@ -76,7 +76,7 @@ public class CollectionBook : MonoBehaviour
             bool discovered = PlayerCollection.IsDiscovered(card.cardName);
 
             CollectionSlotView slot = Instantiate(slotPrefab, gridParent);
-            slot.Setup(card, discovered, PlayerCollection.GetCount(card.cardName));
+            slot.Setup(card, discovered, PlayerCollection.GetCount(card.cardName), false);
 
             Button btn = slot.GetComponent<Button>();
             if (btn != null && discovered)

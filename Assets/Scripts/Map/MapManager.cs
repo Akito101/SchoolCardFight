@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Collections.Generic;
 
 public class MapManager : MonoBehaviour
 {
@@ -9,6 +10,13 @@ public class MapManager : MonoBehaviour
     public LevelNode[] levels;
     public string battleScene = "TestGamePlay";
     public string minigameScene = "Minigame"; // not built yet, handled safely
+
+    // NEW
+    [Header("Artifact choice + VN before battle")]
+    public ArtifactChoicePanel artifactChoicePanel;
+    public int firstLevelWithArtifactChoice = 1;   // 0 = tutorial (no choice), 1/2/3 = levels 2/3/4
+    [Tooltip("Optional VN scene per level (same order as Levels). Leave an entry empty to go straight to battle.")]
+    public string[] levelVNScenes;
 
     [Header("UI")]
     public TextMeshProUGUI coinsText;
@@ -65,7 +73,51 @@ public class MapManager : MonoBehaviour
         }
 
         PlayerProgress.LevelSelected = index;
-        SceneManager.LoadScene(battleScene);
+
+        List<ArtifactEffect> owned = GetOwnedArtifacts();
+
+        // no panel for the tutorial, or if the player owns no artifact yet
+        if (artifactChoicePanel == null || index < firstLevelWithArtifactChoice || owned.Count == 0)
+        {
+            PlayerArtifactChoice.Clear();
+            SceneManager.LoadScene(GetSceneAfterChoice(index));
+            return;
+        }
+
+        // one or more owned: always show the panel
+        CloseAllPanels();
+        artifactChoicePanel.Show(owned, effect =>
+        {
+            PlayerArtifactChoice.Set(effect);
+            SceneManager.LoadScene(GetSceneAfterChoice(index));
+        });
+    }
+
+    // the level's VN scene if one is set, otherwise straight to battle
+    private string GetSceneAfterChoice(int index)
+    {
+        if (levelVNScenes != null && index < levelVNScenes.Length && !string.IsNullOrEmpty(levelVNScenes[index]))
+            return levelVNScenes[index];
+
+        return battleScene;
+    }
+
+    // artifacts earned from the first clear of every beaten level
+    private List<ArtifactEffect> GetOwnedArtifacts()
+    {
+        List<ArtifactEffect> owned = new List<ArtifactEffect>();
+
+        LevelRewards rewards = Resources.Load<LevelRewards>("LevelRewards");
+        if (rewards == null) return owned;
+
+        int cleared = PlayerProgress.ClearedLevels;
+        for (int i = 0; i < cleared; i++)
+        {
+            LevelRewards.Reward r = rewards.Get(i);
+            if (r == null || r.artifact == ArtifactEffect.None) continue;
+            if (!owned.Contains(r.artifact)) owned.Add(r.artifact);
+        }
+        return owned;
     }
 
     private int TotalOwnedCards()
@@ -103,7 +155,7 @@ public class MapManager : MonoBehaviour
 
     public void OnDebugWinPressed()
     {
-        PlayerProgress.LevelSelected = PlayerProgress.ClearedLevels; // ensure the next level is selected // ensure the next level is selected
+        PlayerProgress.LevelSelected = PlayerProgress.ClearedLevels; // ensure the next level is selected
         PlayerProgress.OnBattleFinished(true);
     }
 
@@ -122,6 +174,7 @@ public class MapManager : MonoBehaviour
         settingsPanel.SetActive(false);
         messagePanel.SetActive(false);
         minigamePanel.SetActive(false);
+        if (artifactChoicePanel != null) artifactChoicePanel.gameObject.SetActive(false);   // NEW
     }
 
     private void ShowMessage(string text)

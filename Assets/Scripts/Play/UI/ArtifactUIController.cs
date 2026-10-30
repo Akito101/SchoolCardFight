@@ -9,6 +9,12 @@ public class ArtifactUIController : MonoBehaviour
     [SerializeField] private GameObject stealActivationObj;
     [SerializeField] private WheelClickDetector wheelClickDetector;
 
+    // AUDIO
+    [Header("Artifact Sounds")]
+    [SerializeField] private AudioClip protectionSfx;
+    [SerializeField] private AudioClip reshuffleSfx;
+    [SerializeField] private AudioClip stealSfx;
+
     public bool IsPlayingNotification { get; private set; } = false;
     private Sequence currentSequence;
 
@@ -45,8 +51,30 @@ public class ArtifactUIController : MonoBehaviour
 
         CanvasGroup canvasGroup = PrepareNotificationObject(targetObj);
 
+        PlayArtifactSound(effect); // AUDIO
+
         // 3: Animate the prepared notification and complete the request when it finishes.
         currentSequence = CreateNotificationSequence(targetObj, canvasGroup, onComplete);
+    }
+
+    // AUDIO
+    private void PlayArtifactSound(ArtifactEffect effect)
+    {
+        AudioClip clip = null;
+        switch (effect)
+        {
+            case ArtifactEffect.Protection:
+                clip = protectionSfx;
+                break;
+            case ArtifactEffect.ReshuffleOpponentDeck:
+                clip = reshuffleSfx;
+                break;
+            case ArtifactEffect.StealCard:
+                clip = stealSfx;
+                break;
+        }
+
+        if (clip != null) GameAudio.PlaySfx(clip);   // follows the SFX slider
     }
 
     private GameObject GetNotificationObject(ArtifactEffect effect)
