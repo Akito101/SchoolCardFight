@@ -770,7 +770,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 621241a4e74064228827d8efd5a4cd9e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AILevelDeck
-  cardDatabase: {fileID: 11400000, guid: f5148ffe794133c4c8f08a62877d72aa, type: 2}
+  cardDatabase: {fileID: 11400000, guid: 3f22d26f338c542a9a6c45e85b4c5c8d, type: 2}
   uniqueCardDatabase:
   - {fileID: 11400000, guid: 3522b767f42884e6b945f3094faf79c3, type: 2}
   - {fileID: 11400000, guid: 978737a76ca5c4d7e900acdb0a6c7c1d, type: 2}
