@@ -295,7 +295,30 @@ public class BattleResultPanel : MonoBehaviour
             }
         }
 
-        foreach (CardData card in cardsToGive) PlayerCollection.AddCard(card.cardName);
+        foreach (CardData card in cardsToGive)
+        {
+            // 1. Add card count to the player's general card inventory
+            PlayerCollection.AddCard(card.cardName);
+
+            // 2. Automatically register and save the unique card to the Collection Book database!
+            SaveNewCardToCollection(card.cardName);
+        }
+
         foreach (CardData card in cardsToLose) PlayerCollection.RemoveCard(card.cardName);
+    }
+
+    public void SaveNewCardToCollection(string newCardName)
+    {
+        // 1. Get existing saved collection
+        List<string> collection = PlayerProgress.GetCollectionBook();
+
+        // 2. Add the card if it's not already in the collection book
+        if (!collection.Contains(newCardName))
+        {
+            collection.Add(newCardName);
+
+            // 3. Save the updated list to PlayerPrefs & flush IndexedDB for WebGL
+            PlayerProgress.SaveCollectionBook(collection);
+        }
     }
 }

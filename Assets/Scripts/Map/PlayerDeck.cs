@@ -1,112 +1,125 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class BenchSave
-{
-    public List<CardCount> benched = new List<CardCount>();
-}
-
 public static class PlayerDeck
 {
-    private const string Key = "DeckBench";
-    private static BenchSave data;
+    private static List<string> activeDeckCache = null;
 
     private static void EnsureLoaded()
     {
-        if (data != null) return;
-        string json = PlayerPrefs.GetString(Key, "");
-        data = string.IsNullOrEmpty(json) ? new BenchSave() : JsonUtility.FromJson<BenchSave>(json);
-        if (data.benched == null) data.benched = new List<CardCount>();
+        if (activeDeckCache != null) return;
+
+        // Load exclusively from PlayerProgress database
+        activeDeckCache = PlayerProgress.GetBattleDeckCards();
+        if (activeDeckCache == null) activeDeckCache = new List<string>();
     }
 
-    // Copies of this card kept out of the deck (never more than you own)
+    // Copies of this card kept out of the deck (calculated by what is NOT in the active deck list)
     public static int GetBenched(string cardName)
     {
         EnsureLoaded();
-        CardCount entry = data.benched.Find(c => c.cardName == cardName);
-        int saved = entry == null ? 0 : entry.count;
-        return Mathf.Min(saved, PlayerCollection.GetCount(cardName));
+        int totalOwned = PlayerCollection.GetCount(cardName);
+        int inDeckCount = 0;
+
+        foreach (string name in activeDeckCache)
+        {
+            if (name == cardName) inDeckCount++;
+        }
+
+        int benched = totalOwned - inDeckCount;
+        return Mathf.Max(0, benched);
     }
 
     // Copies of this card that are in the deck
     public static int GetInDeck(string cardName)
     {
-        return PlayerCollection.GetCount(cardName) - GetBenched(cardName);
+        EnsureLoaded();
+        int count = 0;
+        foreach (string name in activeDeckCache)
+        {
+            if (name == cardName) count++;
+        }
+        // Never exceed what the player actually owns in collection
+        return Mathf.Min(count, PlayerCollection.GetCount(cardName));
     }
 
     public static int TotalInDeck()
     {
-        int total = 0;
-        foreach (CardCount c in PlayerCollection.GetAll()) total += GetInDeck(c.cardName);
-        return total;
+        EnsureLoaded();
+        return activeDeckCache.Count;
     }
 
     public static bool MoveToBench(string cardName)
     {
+        EnsureLoaded();
+        // To bench a card, it must currently be in the deck
         if (GetInDeck(cardName) <= 0) return false;
-        SetBenched(cardName, GetBenched(cardName) + 1);
+
+        // Remove one instance of this card from the active deck cache list
+        activeDeckCache.Remove(cardName);
+        Save();
         return true;
     }
 
     public static bool MoveToDeck(string cardName)
     {
-        int benched = GetBenched(cardName);
-        if (benched <= 0) return false;
-        SetBenched(cardName, benched - 1);
+        EnsureLoaded();
+        // To move to deck, player must own more copies than are currently in the deck
+        int owned = PlayerCollection.GetCount(cardName);
+        int inDeck = GetInDeck(cardName);
+        if (inDeck >= owned) return false;
+
+        // Add an instance to the active deck cache list
+        activeDeckCache.Add(cardName);
+        Save();
         return true;
     }
 
     public static void AddAllToDeck()
     {
         EnsureLoaded();
-        data.benched.Clear();
+        activeDeckCache.Clear();
+
+        // Populate deck with all available cards from collection up to limit/ownership
+        foreach (CardCount c in PlayerCollection.GetAll())
+        {
+            for (int i = 0; i < c.count; i++)
+            {
+                activeDeckCache.Add(c.cardName);
+            }
+        }
         Save();
     }
 
     // The battle scene uses this to get the player's deck as a list of cards
     public static List<CardData> ToCardList(CardDatabase database)
     {
+        EnsureLoaded();
         List<CardData> list = new List<CardData>();
-        foreach (CardCount c in PlayerCollection.GetAll())
+        foreach (string cardName in activeDeckCache)
         {
-            CardData card = database.GetByName(c.cardName);
-            if (card == null) continue;
-
-            int copies = GetInDeck(c.cardName);
-            for (int i = 0; i < copies; i++) list.Add(card);
+            CardData card = database.GetByName(cardName);
+            if (card != null) list.Add(card);
         }
         return list;
     }
 
     public static void Clear()
     {
-        data = new BenchSave();
-        PlayerPrefs.DeleteKey(Key);
-    }
-
-    private static void SetBenched(string cardName, int amount)
-    {
         EnsureLoaded();
-        CardCount entry = data.benched.Find(c => c.cardName == cardName);
-
-        if (entry == null)
-        {
-            if (amount <= 0) return;
-            entry = new CardCount { cardName = cardName, count = amount };
-            data.benched.Add(entry);
-        }
-        else
-        {
-            entry.count = amount;
-            if (entry.count <= 0) data.benched.Remove(entry);
-        }
+        activeDeckCache.Clear();
         Save();
     }
 
     private static void Save()
     {
-        PlayerPrefs.SetString(Key, JsonUtility.ToJson(data));
-        PlayerPrefs.Save();
+        // Delegate all persistence strictly to PlayerProgress database
+        PlayerProgress.SaveBattleDeckCards(activeDeckCache);
+    }
+
+    public static List<string> GetActiveDeckCardNames()
+    {
+        EnsureLoaded();
+        return new List<string>(activeDeckCache);
     }
 }
