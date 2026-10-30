@@ -95,6 +95,7 @@ MonoBehaviour:
   artImage: {fileID: 6079718817558196982}
   nameText: {fileID: 0}
   countText: {fileID: 7380583262398557447}
+  countBadge: {fileID: 0}
   undiscoveredSprite: {fileID: 21300000, guid: a56dd070d3134473d897eaf52f126637, type: 3}
   undiscoveredBrightness: 0.508
 --- !u!114 &7183420721193121175
@@ -188,7 +189,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 115, y: 164}
+  m_AnchoredPosition: {x: 73, y: 135.6}
   m_SizeDelta: {x: 100, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5356896107179667613
@@ -253,7 +254,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 4
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
