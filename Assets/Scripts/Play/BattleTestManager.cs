@@ -104,6 +104,13 @@ public class BattleTestManager : MonoBehaviour
             aiArtifactEffect = level.enemyArtifact;
         }
 
+        // Load AI Deck
+        List<CardData> generatedAIDeck = aiLevelDeck?.CreateDeck(currentAIType);
+        if (generatedAIDeck != null && generatedAIDeck.Count > 0)
+        {
+            aiCards = generatedAIDeck;
+        }
+
         // Player's chosen artifact from the Map (if they came through the choice panel)
         if (PlayerArtifactChoice.HasChoice)
         {
