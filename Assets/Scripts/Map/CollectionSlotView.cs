@@ -5,28 +5,43 @@ using TMPro;
 public class CollectionSlotView : MonoBehaviour
 {
     public Image artImage;
-    public TextMeshProUGUI nameText;     // optional: leave empty if the card has no name bar
+    public TextMeshProUGUI nameText;     // optional
     public TextMeshProUGUI countText;
-    public GameObject countBadge;        // optional: the badge/background behind the number, if there is one
+    public GameObject countBadge;        // optional
+    public CardInspector inspector;      // optional: auto-found if left empty
 
     [Header("Shown for cards the player hasn't found yet")]
     public Sprite undiscoveredSprite;
-    [Range(0f, 1f)] public float undiscoveredBrightness = 0.5f;   // 1 = original picture, 0 = pure black
+    [Range(0f, 1f)] public float undiscoveredBrightness = 0.5f;
+
+    private CardData currentData;
+    private bool currentDiscovered;
+    private int currentOwned;
+
+    private void Awake()
+    {
+        // Uses the Button on this prefab (root or a parent/child)
+        Button btn = GetComponent<Button>();
+        if (btn == null) btn = GetComponentInChildren<Button>(true);
+        if (btn != null) btn.onClick.AddListener(OnClicked);
+    }
 
     public void Setup(CardData data, bool discovered, int ownedCount, bool showCount = true)
     {
+        currentData = data;
+        currentDiscovered = discovered;
+        currentOwned = ownedCount;
+
         if (!discovered)
         {
             if (undiscoveredSprite != null)
             {
-                // your "not found yet" picture, darkened
                 artImage.sprite = undiscoveredSprite;
                 float b = undiscoveredBrightness;
                 artImage.color = new Color(b, b, b, 1f);
             }
             else if (data.cardArt != null)
             {
-                // fallback: the card art as a black silhouette
                 artImage.sprite = data.cardArt;
                 artImage.color = Color.black;
             }
@@ -53,7 +68,22 @@ public class CollectionSlotView : MonoBehaviour
         }
 
         SetName($"{data.cardName}\n({data.category})");
-        SetCount($"x{ownedCount}", showCount);   // x0 means you found it before but don't own it now
+        SetCount($"x{ownedCount}", showCount);
+    }
+
+    private void OnClicked()
+    {
+        // Only discovered cards open the inspector
+        if (!currentDiscovered || currentData == null) return;
+
+        // The prefab can't hold a scene reference, so find it if not assigned
+        if (inspector == null)
+            inspector = FindObjectOfType<CardInspector>(true);   // true = include inactive
+
+        if (inspector != null)
+            inspector.Show(currentData, currentOwned);
+        else
+            Debug.LogWarning("No CardInspector found in the scene.");
     }
 
     private void SetName(string text)
