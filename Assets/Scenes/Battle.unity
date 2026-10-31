@@ -706,10 +706,16 @@ MonoBehaviour:
   artifactUIController: {fileID: 570117952}
   dialogueController: {fileID: 1417413574}
   playerCards:
-  - {fileID: 11400000, guid: b0517f0d6a61ae3418ba023a85fec250, type: 2}
-  - {fileID: 11400000, guid: e1d474129e48c4d498bec34f066a27ce, type: 2}
-  - {fileID: 11400000, guid: 890538bfe7e414b64a7a208655f22c40, type: 2}
-  - {fileID: 11400000, guid: 5c374e3ea72a14a429787140d28b047f, type: 2}
+  - {fileID: 11400000, guid: 5dfe315570d1447f8886910397fbd2e7, type: 2}
+  - {fileID: 11400000, guid: d0175103e2b26428d975a8f7a60bc628, type: 2}
+  - {fileID: 11400000, guid: 35e10a8d8344f4a38a4a5f2f44d648df, type: 2}
+  - {fileID: 11400000, guid: 01bed7a67ae494f9cb85d99513985385, type: 2}
+  - {fileID: 11400000, guid: 991203fae8c5b45218b0243d273416aa, type: 2}
+  - {fileID: 11400000, guid: bf1b6380f4d0945349f166b36ecd8a2d, type: 2}
+  - {fileID: 11400000, guid: 76ba9d9c7771e4897a56612fec3c5064, type: 2}
+  - {fileID: 11400000, guid: dd375b530499442168bd49e35e6c8653, type: 2}
+  - {fileID: 11400000, guid: 934b010b082604d369aa697ca19fd13b, type: 2}
+  - {fileID: 11400000, guid: 81dce3ded8ff74047b37ef7c6311547b, type: 2}
   aiCards:
   - {fileID: 11400000, guid: 76ba9d9c7771e4897a56612fec3c5064, type: 2}
   - {fileID: 11400000, guid: dd375b530499442168bd49e35e6c8653, type: 2}
@@ -5196,7 +5202,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 122.3, y: -110.4}
+  m_AnchoredPosition: {x: 122.30005, y: -110.3999}
   m_SizeDelta: {x: 247.7, y: 43.3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1023797530

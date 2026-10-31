@@ -91,7 +91,7 @@ public class BattleTestManager : MonoBehaviour
     {
         // Load Battle Scene
         currentAIType = GetAITypeForLevel(PlayerProgress.LevelSelected);
-        // currentAIType = GetAITypeForLevel(1);
+        // currentAIType = GetAITypeForLevel(2);
         dialogueController?.SetAIType(currentAIType);
         backgroundController?.SetBackgroundForAI(currentAIType);
         resultPanel?.SetAIType(currentAIType);
@@ -554,18 +554,31 @@ public class BattleTestManager : MonoBehaviour
                 return;
             }
 
-            List<CardData> cardsWonByPlayer = isPlayerWinner
-                ? GetCardsOwnedByAI(boardDeck)
-                : new List<CardData>();
+            if (isPlayerWinner)
+            {
+                List<CardData> aiSurvivingCards = aiDeckView.GetRemainingDeckCards();
+                List<CardData> tempAiSurviving = new List<CardData>(aiSurvivingCards);
+
+                playerWonCards.Clear();
+                foreach (CardData card in aiCards)
+                {
+                    if (card == null) continue;
+                    int index = tempAiSurviving.FindIndex(c => c != null && c.cardName == card.cardName);
+                    if (index >= 0)
+                    {
+                        tempAiSurviving.RemoveAt(index); // Card survived in AI's deck
+                    }
+                    else
+                    {
+                        playerWonCards.Add(card); // Card is missing from AI's deck, player won it!
+                    }
+                }
+            }
 
             boardDeckView.AddBoardDeckToWinnerDeck(
             targetDeckPos,
             boardDeck =>
             {
-                if (isPlayerWinner)
-                {
-                    playerWonCards.AddRange(cardsWonByPlayer);
-                }
 
                 // 5: Reset the Protection active artifact for the winning owner.
                 BoardCardOwner winningOwner = isPlayerWinner ? BoardCardOwner.Player : BoardCardOwner.AI;
@@ -607,6 +620,13 @@ public class BattleTestManager : MonoBehaviour
                                 {
                                     lostCards.Add(card); // Card is missing, it was lost!
                                 }
+                            }
+
+                            // Update Player Builded Deck 
+                            PlayerDeck.Clear();
+                            foreach (CardData survivingCard in survivingCards)
+                            {
+                                PlayerDeck.MoveToDeck(survivingCard.cardName);
                             }
                         }
 
@@ -944,27 +964,5 @@ public class BattleTestManager : MonoBehaviour
             swipe.enabled = enable;
             if (enable) swipe.battleTestManager = this;
         }
-    }
-
-    // ---- Debug: instant win / lose (remove before release) ----
-    // In Play mode: click the three dots (⋮) at the top right of this component in the Inspector,
-    // then choose "Debug: Instant Win" or "Debug: Instant Lose".
-    [ContextMenu("Debug: Instant Win")]
-    private void DebugInstantWin() { ForceResult(true); }
-
-    [ContextMenu("Debug: Instant Lose")]
-    private void DebugInstantLose() { ForceResult(false); }
-
-    private void ForceResult(bool playerWon)
-    {
-        if (!Application.isPlaying) return;
-        if (matchOver) return;
-        matchOver = true;
-        isBusy = true;
-        SetSwipe(playerCCView, false);
-        DOTween.KillAll();
-
-        List<CardData> lostCards = playerWon ? null : new List<CardData>(playerCards);
-        resultPanel.ShowResult(playerWon, playerWonCards, lostCards);
     }
 }

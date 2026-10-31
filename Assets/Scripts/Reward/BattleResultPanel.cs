@@ -48,8 +48,8 @@ public class BattleResultPanel : MonoBehaviour
     private BattleTestManager.AIType aiType = BattleTestManager.AIType.Teacher;
     private int coinsToGive;
     private ArtifactEffect artifactToUnlock = ArtifactEffect.None;   // still unlocked, just not displayed
-    private readonly List<CardData> cardsToGive = new List<CardData>();
-    private readonly List<CardData> cardsToLose = new List<CardData>();
+    private List<CardData> cachedWonCards = new List<CardData>();
+    private List<CardData> cachedLostCards = new List<CardData>();
     private readonly List<CardData> cardsToShow = new List<CardData>();
 
     void Awake()
@@ -91,6 +91,9 @@ public class BattleResultPanel : MonoBehaviour
         won = playerWon;
         winLoseUIController?.ShowResult(aiType, playerWon);
 
+        cachedWonCards = wonCards ?? new List<CardData>();
+        cachedLostCards = lostCards ?? new List<CardData>();
+
         LevelRewards rewards = Resources.Load<LevelRewards>("LevelRewards");
         LevelRewards.Reward reward = rewards != null ? rewards.Get(PlayerProgress.LevelSelected) : null;
         if (reward == null) Debug.LogWarning("BattleResultPanel: no reward entry for this level. Check Resources/LevelRewards.");
@@ -100,8 +103,6 @@ public class BattleResultPanel : MonoBehaviour
 
         coinsToGive = 0;
         artifactToUnlock = ArtifactEffect.None;
-        cardsToGive.Clear();
-        cardsToLose.Clear();
         cardsToShow.Clear();
 
         if (reward != null)
@@ -121,31 +122,23 @@ public class BattleResultPanel : MonoBehaviour
             }
         }
 
-        if (won && wonCards != null)
+        if (won && cachedWonCards.Count > 0)
         {
             HashSet<string> taken = new HashSet<string>();
-            foreach (CardData c in wonCards)
+            HashSet<string> listed = new HashSet<string>();
+
+            foreach (CardData c in cachedWonCards)
             {
                 if (c == null || c.isArtifact) continue;
                 if (oneCopyOfEach && !taken.Add(c.cardName)) continue;
-                cardsToGive.Add(c);
-            }
 
-            HashSet<string> listed = new HashSet<string>();
-            foreach (CardData c in cardsToGive)
-            {
-                if (PlayerCollection.GetCount(c.cardName) > 0) continue;
-                if (listed.Add(c.cardName)) cardsToShow.Add(c);
-            }
-        }
+                // Only show if it's not already discovered in the collection book
+                if (PlayerCollection.IsDiscovered(c.cardName)) continue;
 
-        if (!won && lostCards != null)
-        {
-            foreach (CardData c in lostCards)
-            {
-                if (c == null) continue;
-                cardsToLose.Add(c);
-                cardsToShow.Add(c);
+                if (listed.Add(c.cardName))
+                {
+                    cardsToShow.Add(c);
+                }
             }
         }
 
@@ -297,7 +290,7 @@ public class BattleResultPanel : MonoBehaviour
 
         if (won)
         {
-            foreach (CardData card in cardsToGive)
+            foreach (CardData card in cachedWonCards)
             {
                 PlayerCollection.AddCard(card.cardName);
                 SaveNewCardToCollection(card.cardName);
@@ -305,8 +298,9 @@ public class BattleResultPanel : MonoBehaviour
         }
         else
         {
-            foreach (CardData card in cardsToLose)
+            foreach (CardData card in cachedLostCards)
             {
+                if (card == null) continue;
                 PlayerCollection.RemoveCard(card.cardName);
             }
         }

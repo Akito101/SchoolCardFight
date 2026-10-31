@@ -31,6 +31,11 @@ public class AIDeckView : MonoBehaviour
         aiDeckTransform = GetComponent<RectTransform>();
     }
 
+    public List<CardData> GetRemainingDeckCards()
+    {
+        return new List<CardData>(aiDeckData);
+    }
+
     public void BuildDeck(List<CardData> initialDeck, ArtifactEffect artifactType, System.Action onAnimationComplete = null)
     {
         ClearDeck();
