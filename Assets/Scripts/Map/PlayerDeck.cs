@@ -12,6 +12,36 @@ public static class PlayerDeck
         // Load exclusively from PlayerProgress database
         activeDeckCache = PlayerProgress.GetBattleDeckCards();
         if (activeDeckCache == null) activeDeckCache = new List<string>();
+
+        // Old saves can contain cards the player has since lost: clean them out once on load
+        Prune();
+    }
+
+    // Removes deck entries for cards the player no longer owns (or owns fewer copies of).
+    // The deck can never list more copies of a card than the collection holds.
+    public static void Prune()
+    {
+        if (activeDeckCache == null) return;
+
+        Dictionary<string, int> kept = new Dictionary<string, int>();
+        List<string> clean = new List<string>(activeDeckCache.Count);
+
+        foreach (string name in activeDeckCache)
+        {
+            int owned = PlayerCollection.GetCount(name);
+            kept.TryGetValue(name, out int k);
+
+            if (k >= owned) continue;   // not owned (anymore) or too many copies: drop it
+
+            kept[name] = k + 1;
+            clean.Add(name);
+        }
+
+        if (clean.Count != activeDeckCache.Count)
+        {
+            activeDeckCache = clean;
+            Save();
+        }
     }
 
     // Copies of this card kept out of the deck (calculated by what is NOT in the active deck list)
@@ -43,9 +73,11 @@ public static class PlayerDeck
         return Mathf.Min(count, PlayerCollection.GetCount(cardName));
     }
 
+    // Real deck size: only cards the player still owns
     public static int TotalInDeck()
     {
         EnsureLoaded();
+        Prune();
         return activeDeckCache.Count;
     }
 
@@ -79,6 +111,7 @@ public static class PlayerDeck
     public static void EnsureDeckPopulatedUpTo(int limit)
     {
         EnsureLoaded();
+        Prune();
         if (activeDeckCache.Count > 0) return; // Already has cards, do nothing
 
         foreach (CardCount c in PlayerCollection.GetAll())
@@ -114,6 +147,7 @@ public static class PlayerDeck
     public static List<CardData> ToCardList(CardDatabase database)
     {
         EnsureLoaded();
+        Prune();
         List<CardData> list = new List<CardData>();
         foreach (string cardName in activeDeckCache)
         {
@@ -139,6 +173,7 @@ public static class PlayerDeck
     public static List<string> GetActiveDeckCardNames()
     {
         EnsureLoaded();
+        Prune();
         return new List<string>(activeDeckCache);
     }
 }

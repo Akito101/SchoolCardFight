@@ -11,7 +11,6 @@ public class MapManager : MonoBehaviour
     public string battleScene = "TestGamePlay";
     public string minigameScene = "Minigame"; // not built yet, handled safely
 
-    // NEW
     [Header("Artifact choice + VN before battle")]
     public ArtifactChoicePanel artifactChoicePanel;
     public int firstLevelWithArtifactChoice = 1;   // 0 = tutorial (no choice), 1/2/3 = levels 2/3/4
@@ -38,6 +37,14 @@ public class MapManager : MonoBehaviour
 
         CloseAllPanels();
         RefreshAll();
+
+        // a message left by another scene (for example the battle refusing to start with too few cards)
+        string notice = PlayerPrefs.GetString("MapNotice", "");
+        if (!string.IsNullOrEmpty(notice))
+        {
+            PlayerPrefs.DeleteKey("MapNotice");
+            ShowMessage(notice);
+        }
     }
 
     public void RefreshAll()
@@ -57,16 +64,20 @@ public class MapManager : MonoBehaviour
         }
     }
 
+    // How many cards the player needs in the deck to fight this level.
+    // Uses the same rule as the DeckBuilder (LevelRewards.GetDeckSize),
+    // so the two screens can never disagree. Minimum of 1.
+    private int NeededDeckSize(int index)
+    {
+        return LevelRewards.GetDeckSize(index, levels[index].minCards);
+    }
+
     private void OnLevelPressed(int index)
     {
-        // the deck size comes from the LevelRewards asset (Min Cards on the button is only a backup)
-        LevelRewards rewards = Resources.Load<LevelRewards>("LevelRewards");
-        LevelRewards.Reward reward = rewards != null ? rewards.Get(index) : null;
-        int needed = reward != null ? reward.deckSize : levels[index].minCards;
-
+        int needed = NeededDeckSize(index);
         int inDeck = PlayerDeck.TotalInDeck();
 
-        if (needed > 0 && inDeck < needed)
+        if (inDeck < needed)
         {
             ShowMessage($"Your deck needs at least {needed} cards to fight {levels[index].enemyName}.\nYour deck has {inDeck}. Add cards in the Deck tab, or earn coins in the minigame and buy more packs!");
             return;
@@ -174,7 +185,7 @@ public class MapManager : MonoBehaviour
         settingsPanel.SetActive(false);
         messagePanel.SetActive(false);
         minigamePanel.SetActive(false);
-        if (artifactChoicePanel != null) artifactChoicePanel.gameObject.SetActive(false);   // NEW
+        if (artifactChoicePanel != null) artifactChoicePanel.gameObject.SetActive(false);
     }
 
     private void ShowMessage(string text)

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using DG.Tweening;
 using System;
@@ -41,6 +42,10 @@ public class BattleTestManager : MonoBehaviour
 
     [Header("Real decks")]
     [SerializeField] private CardDatabase database;      // same CardDatabase asset the DeckBuilder uses
+
+    [Header("Deck gate")]
+    [SerializeField] private string mapScene = "Map";        // your real map scene name
+    [SerializeField] private int fallbackMinCards = 10;      // same as Min Cards on the level buttons
 
     [Header("AI Settings")]
     [SerializeField] private AIType currentAIType = AIType.Teacher;
@@ -120,21 +125,41 @@ public class BattleTestManager : MonoBehaviour
 
         // 2: Load the player's saved deck
         {
-            bool isReplay = PlayerProgress.LevelSelected < PlayerProgress.ClearedLevels;
-            if (!isReplay && level != null && level.deckSize > 0)
+            int levelIndex = PlayerProgress.LevelSelected;
+            int needed = LevelRewards.GetDeckSize(levelIndex, fallbackMinCards);   // same rule as the Map and DeckBuilder
+            bool isReplay = levelIndex < PlayerProgress.ClearedLevels;
+
+            if (!isReplay)
             {
-                DeckLimit.TrimTo(level.deckSize, database);
+                DeckLimit.TrimTo(needed, database);
 
                 // Cleanly delegate auto-population logic to PlayerDeck
-                PlayerDeck.EnsureDeckPopulatedUpTo(level.deckSize);
+                PlayerDeck.EnsureDeckPopulatedUpTo(needed);
+            }
 
-                if (PlayerDeck.TotalInDeck() < level.deckSize)
-                    Debug.LogWarning($"BattleTestManager: the deck has {PlayerDeck.TotalInDeck()} cards but this level needs {level.deckSize}.");
+            // Gate: applies to first tries AND replays, whatever scene loaded us (Retry, VN, map)
+            int inDeck = PlayerDeck.TotalInDeck();
+            if (inDeck < needed)
+            {
+                PlayerPrefs.SetString("MapNotice",
+                    $"Your deck needs at least {needed} cards to fight.\nYour deck has {inDeck}. Add cards in the Deck tab, or earn coins in the minigame and buy more packs!");
+                SceneManager.LoadScene(mapScene);
+                return;
             }
 
             List<CardData> built = BuildPlayerDeckFromSave();
-            if (built.Count > 0) playerCards = built;
-            else Debug.LogWarning("BattleTestManager: saved deck is empty, using the placeholder deck.");
+            if (built.Count > 0)
+            {
+                playerCards = built;
+            }
+            else
+            {
+                // No more silent placeholder deck: an empty saved deck cannot fight.
+                Debug.LogWarning("BattleTestManager: saved deck is empty.");
+                PlayerPrefs.SetString("MapNotice", "Your deck is empty. Add cards in the Deck tab first.");
+                SceneManager.LoadScene(mapScene);
+                return;
+            }
         }
 
         // 3: Reset the board and wait for both decks to finish their opening animations.
@@ -267,12 +292,13 @@ public class BattleTestManager : MonoBehaviour
     {
         if (drawPlayerCard.isArtifact)
         {
-            if (!playerUsedArtifactFirst)
-            {
-                playerUsedArtifactFirst = true;
-            }
+            // Only the player's FIRST artifact can start Monitor dialogue 2.
+            // (Before, every later artifact re-ran the check, set monitorDialogue2Triggered = true
+            //  while the dialogue could not show a second time -> nothing to click -> frozen battle.)
+            bool isFirstPlayerArtifact = !playerUsedArtifactFirst;
+            playerUsedArtifactFirst = true;
 
-            if (!aiUsedArtifactFirst && !monitorDialogue2Triggered)
+            if (isFirstPlayerArtifact && !aiUsedArtifactFirst && !monitorDialogue2Triggered)
             {
                 pendingPlayerArtifactCard = drawPlayerCard;
                 CheckPlayerFirstArtifactUsage();
@@ -282,6 +308,8 @@ public class BattleTestManager : MonoBehaviour
                     Debug.Log("Player used an artifact first, triggering Monitor dialogue 2.");
                     return;
                 }
+
+                pendingPlayerArtifactCard = null;   // no dialogue started, the artifact just plays normally
             }
 
             if (artifactController == null)
@@ -729,12 +757,12 @@ public class BattleTestManager : MonoBehaviour
 
         if (playerUsedArtifactFirst && !aiUsedArtifactFirst)
         {
-            monitorDialogue2Triggered = true;
+            // Only freeze the battle if the dialogue really started.
+            if (!dialogueController.TriggerMonitorDialogue2()) return;
 
+            monitorDialogue2Triggered = true;
             isBusy = true;
             SetSwipe(playerCCView, false);
-
-            dialogueController.TriggerMonitorDialogue2();
         }
     }
 
@@ -858,25 +886,25 @@ public class BattleTestManager : MonoBehaviour
                 playerDeckView.GetComponent<RectTransform>().anchoredPosition,
                 aiDeckView.GetComponent<RectTransform>().anchoredPosition,
                 (returnedPlayerCards, returnedAICards) =>
-            {
-                if (artifactController == null)
                 {
-                    Debug.LogError("Cannot steal a Teacher card because the ArtifactController reference is missing.");
-                    TeacherCancelPlayerAritifact(
-                        returnedPlayerCards,
-                        returnedAICards,
-                        () => dialogueController?.CompleteTeacherDialogueEffect());
-                    return;
-                }
+                    if (artifactController == null)
+                    {
+                        Debug.LogError("Cannot steal a Teacher card because the ArtifactController reference is missing.");
+                        TeacherCancelPlayerAritifact(
+                            returnedPlayerCards,
+                            returnedAICards,
+                            () => dialogueController?.CompleteTeacherDialogueEffect());
+                        return;
+                    }
 
-                artifactController.PlayerStealCard(() =>
-                {
-                    TeacherCancelPlayerAritifact(
-                        returnedPlayerCards,
-                        returnedAICards,
-                        () => dialogueController?.CompleteTeacherDialogueEffect());
+                    artifactController.PlayerStealCard(() =>
+                    {
+                        TeacherCancelPlayerAritifact(
+                            returnedPlayerCards,
+                            returnedAICards,
+                            () => dialogueController?.CompleteTeacherDialogueEffect());
+                    });
                 });
-            });
             return;
         }
 

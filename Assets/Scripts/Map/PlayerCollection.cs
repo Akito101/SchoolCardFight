@@ -76,6 +76,9 @@ public static class PlayerCollection
         entry.count -= amount;
         if (entry.count <= 0) data.cards.Remove(entry);
         Save();
+
+        // the deck must never keep cards the player no longer owns
+        PlayerDeck.Prune();
     }
 
     public static int GetCount(string cardName)
@@ -101,6 +104,7 @@ public static class PlayerCollection
     {
         data = new CollectionSave();
         Save();
+        PlayerDeck.Prune();
     }
 
     private static void Save()

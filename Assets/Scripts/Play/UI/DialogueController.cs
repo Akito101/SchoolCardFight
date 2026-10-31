@@ -51,6 +51,10 @@ public class DialogueController : MonoBehaviour
 
     private int activeDialogueIndex = 1;
 
+    // true after the player picked Agree/Disagree, so a double tap while the boxes slide out
+    // cannot run the choice twice (that caused double AI draws / a stuck battle)
+    private bool choiceLocked;
+
     private float slideDuration = 0.5f;
     private float avatarOffset = 300f;
     private float aiDialogueOffset = 1200f;
@@ -147,26 +151,38 @@ public class DialogueController : MonoBehaviour
         return true;
     }
 
-    public void TriggerMonitorDialogue2()
+    // Returns true ONLY if the dialogue really started.
+    // The battle uses this to decide whether to pause itself, so it can never wait for a dialogue that never appeared.
+    public bool TriggerMonitorDialogue2()
     {
-        if (IsDialogueActive || hasTriggeredMonitorDialogue2) return;
+        if (IsDialogueActive || hasTriggeredMonitorDialogue2) return false;
 
-        if (currentAIType != BattleTestManager.AIType.Monitor) return;
+        if (currentAIType != BattleTestManager.AIType.Monitor) return false;
 
         hasTriggeredMonitorDialogue2 = true;
         activeDialogueIndex = 2;
 
-        TriggerDialogueWithBlock(monitorAvatarRect, monitorDialogueBox2, monitorButtomBox2, () =>
+        return TriggerDialogueWithBlock(monitorAvatarRect, monitorDialogueBox2, monitorButtomBox2, () =>
         {
             Debug.Log("Monitor Dialogue 2 triggered via player first artifact completed.");
         });
     }
 
-    public void TriggerDialogueWithBlock(RectTransform targetAvatar, RectTransform targetAIBox, RectTransform targetPlayerBox, System.Action onDialogueComplete)
+    public bool TriggerDialogueWithBlock(RectTransform targetAvatar, RectTransform targetAIBox, RectTransform targetPlayerBox, System.Action onDialogueComplete)
     {
+        // Missing references: do not leave IsDialogueActive stuck on true (that froze the battle)
+        if (targetAvatar == null || targetAIBox == null || targetPlayerBox == null)
+        {
+            Debug.LogError("DialogueController: a dialogue box or avatar reference is missing, skipping this dialogue.");
+            onDialogueComplete?.Invoke();
+            return false;
+        }
+
         IsDialogueActive = true;
+        choiceLocked = false;
         currentDialogueCompleteCallback = onDialogueComplete;
         ShowDialoguePair(targetAvatar, targetAIBox, targetPlayerBox);
+        return true;
     }
 
     public void ShowDialoguePair(RectTransform targetAvatar, RectTransform targetAIBox, RectTransform targetPlayerBox, System.Action onComplete = null)
@@ -219,6 +235,10 @@ public class DialogueController : MonoBehaviour
 
     public void HandlePlayerChoice(string choice)
     {
+        // ignore clicks when no dialogue is open, or when a choice was already made
+        if (!IsDialogueActive || choiceLocked) return;
+        choiceLocked = true;
+
         bool agreed = choice == "AGREE";
 
         switch (currentAIType)

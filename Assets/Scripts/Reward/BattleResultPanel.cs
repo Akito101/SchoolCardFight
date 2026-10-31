@@ -29,6 +29,11 @@ public class BattleResultPanel : MonoBehaviour
     [Header("Enemy cards")]
     public bool oneCopyOfEach = false;
 
+    [Header("Lose look (cards lost)")]
+    public Color lostLabelColor = new Color(0.9f, 0.25f, 0.25f, 1f);
+    public Color lostCardTint = new Color(0.8f, 0.2f, 0.2f, 1f);
+    [Range(0f, 1f)] public float lostTintAmount = 0.6f;
+
     [Header("Button")]
     public Button okayButton;
 
@@ -36,12 +41,14 @@ public class BattleResultPanel : MonoBehaviour
     public AudioClip winSfx;
     public AudioClip loseSfx;
     public AudioClip stampSfx;
+    public AudioClip cardLostSfx;                 // played for each lost card (instead of its signature sound)
 
     private CanvasGroup rootGroup;
     private RectTransform stampRect;
     private Vector3 stampBaseScale;
     private Quaternion stampBaseRot;
     private Vector2 stampBasePos;
+    private Color labelBaseColor = Color.white;
 
     private bool shown;
     private bool won;
@@ -74,6 +81,8 @@ public class BattleResultPanel : MonoBehaviour
             stampBaseRot = stampRect.localRotation;
             stampBasePos = stampRect.anchoredPosition;
         }
+
+        if (cardsLabelText != null) labelBaseColor = cardsLabelText.color;
 
         if (okayButton != null) okayButton.onClick.AddListener(OnOkayPressed);
     }
@@ -186,8 +195,15 @@ public class BattleResultPanel : MonoBehaviour
         // cards
         if (cardsToShow.Count > 0 && cardsRow != null)
         {
-            if (cardsLabelText != null) cardsLabelText.text = won ? "New cards collected" : "Cards lost";
-            Pop(cardsRow);
+            if (cardsLabelText != null)
+            {
+                cardsLabelText.text = won ? "New cards collected" : "Cards lost";
+                cardsLabelText.color = won ? labelBaseColor : lostLabelColor;
+            }
+
+            if (won) Pop(cardsRow);          // happy bounce
+            else FadeIn(cardsRow);           // quiet fade, no bounce
+
             yield return new WaitForSeconds(0.3f);
             yield return StartCoroutine(RevealCards());
         }
@@ -232,18 +248,50 @@ public class BattleResultPanel : MonoBehaviour
             if (slot.countText != null) slot.countText.text = "";
             slot.GetComponent<RectTransform>().sizeDelta = cardSlotSize;
 
-            slot.transform.localScale = Vector3.zero;
-            slot.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
-            GameAudio.PlaySfx(card.signatureSfx);
+            if (won)
+            {
+                // WIN: pop in with the card's own sound
+                slot.transform.localScale = Vector3.zero;
+                slot.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+                GameAudio.PlaySfx(card.signatureSfx);
 
-            yield return new WaitForSeconds(0.2f);
+                yield return new WaitForSeconds(0.2f);
+            }
+            else
+            {
+                // LOSE: fade in, then turn red and wobble, with a "lost" sound
+                CanvasGroup cg = slot.GetComponent<CanvasGroup>();
+                if (cg == null) cg = slot.gameObject.AddComponent<CanvasGroup>();
+                cg.alpha = 0f;
+                cg.DOFade(1f, 0.25f);
+
+                yield return new WaitForSeconds(0.3f);
+
+                foreach (Graphic g in slot.GetComponentsInChildren<Graphic>(true))
+                {
+                    g.DOColor(Color.Lerp(g.color, lostCardTint, lostTintAmount), 0.3f);
+                }
+
+                slot.transform.DOPunchRotation(new Vector3(0f, 0f, 8f), 0.35f, 10, 0.6f);
+                GameAudio.PlaySfx(cardLostSfx);
+
+                yield return new WaitForSeconds(0.25f);
+            }
         }
 
         int extra = cardsToShow.Count - count;
         if (extra > 0 && moreCardsText != null)
         {
-            moreCardsText.text = $"And {extra} more...";
-            Pop(moreCardsText.gameObject);
+            if (won)
+            {
+                moreCardsText.text = $"And {extra} more...";
+                Pop(moreCardsText.gameObject);
+            }
+            else
+            {
+                moreCardsText.text = $"And {extra} more lost...";
+                FadeIn(moreCardsText.gameObject);
+            }
         }
 
         yield return new WaitForSeconds(0.2f);
@@ -254,6 +302,18 @@ public class BattleResultPanel : MonoBehaviour
         target.SetActive(true);
         target.transform.localScale = Vector3.zero;
         target.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+    }
+
+    // quiet appearance (used for the lose screen)
+    private void FadeIn(GameObject target)
+    {
+        target.SetActive(true);
+        target.transform.localScale = Vector3.one;
+
+        CanvasGroup cg = target.GetComponent<CanvasGroup>();
+        if (cg == null) cg = target.AddComponent<CanvasGroup>();
+        cg.alpha = 0f;
+        cg.DOFade(1f, 0.4f);
     }
 
     private void ClearCards()

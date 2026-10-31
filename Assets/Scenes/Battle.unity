@@ -725,6 +725,8 @@ MonoBehaviour:
   playerArtifactEffect: 1
   aiArtifactEffect: 2
   database: {fileID: 11400000, guid: f5148ffe794133c4c8f08a62877d72aa, type: 2}
+  mapScene: Map
+  fallbackMinCards: 10
   currentAIType: 3
   aiLevelDeck: {fileID: 203046290}
   battleMusic:
@@ -7175,10 +7177,14 @@ MonoBehaviour:
   cardSlotSize: {x: 330, y: 400}
   maxCardsShown: 4
   oneCopyOfEach: 0
+  lostLabelColor: {r: 0.9, g: 0.25, b: 0.25, a: 1}
+  lostCardTint: {r: 0.8, g: 0.2, b: 0.2, a: 1}
+  lostTintAmount: 0.6
   okayButton: {fileID: 2066720426}
   winSfx: {fileID: 8300000, guid: 4ac474f33c085274c8e3d60677c689a4, type: 3}
   loseSfx: {fileID: 8300000, guid: 5d08807d24bc85e44b004997f947bfad, type: 3}
   stampSfx: {fileID: 0}
+  cardLostSfx: {fileID: 0}
 --- !u!114 &1395041131
 MonoBehaviour:
   m_ObjectHideFlags: 0
