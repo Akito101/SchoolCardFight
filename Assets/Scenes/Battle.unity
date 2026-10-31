@@ -1031,7 +1031,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 360, y: -640}
+  m_AnchoredPosition: {x: 360, y: -636}
   m_SizeDelta: {x: 200, y: 350}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &284550779
@@ -7143,7 +7143,6 @@ RectTransform:
   - {fileID: 890838141}
   - {fileID: 588636859}
   - {fileID: 1496699180}
-  - {fileID: 1440627271}
   - {fileID: 2066720425}
   - {fileID: 1166552059}
   m_Father: {fileID: 1299368158}
@@ -7173,7 +7172,8 @@ MonoBehaviour:
   cardsLabelText: {fileID: 0}
   moreCardsText: {fileID: 1440627272}
   cardsParent: {fileID: 151052775}
-  cardSlotPrefab: {fileID: 1819161718715317120, guid: a5f9078e9f4c7dc4bb893a15a80cb433, type: 3}
+  winCardPrefab: {fileID: 2228077959550696698, guid: 54eadd0145bb18a45890c05fcab699c1, type: 3}
+  loseCardPrefab: {fileID: 1819161718715317120, guid: a5f9078e9f4c7dc4bb893a15a80cb433, type: 3}
   cardSlotSize: {x: 330, y: 400}
   maxCardsShown: 4
   oneCopyOfEach: 0
@@ -7337,11 +7337,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1395041129}
+  m_Father: {fileID: 1496699180}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 560, y: -482}
+  m_AnchoredPosition: {x: 560, y: 7.179993}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1440627272
@@ -7473,6 +7473,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 151052775}
+  - {fileID: 1440627271}
   m_Father: {fileID: 1395041129}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -8186,7 +8187,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 26, y: -299}
+  m_AnchoredPosition: {x: 26, y: -312}
   m_SizeDelta: {x: 350, y: 350}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1640206173

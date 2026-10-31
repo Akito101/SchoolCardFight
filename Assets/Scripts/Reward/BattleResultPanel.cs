@@ -22,7 +22,8 @@ public class BattleResultPanel : MonoBehaviour
     public TextMeshProUGUI cardsLabelText;        // optional
     public TextMeshProUGUI moreCardsText;         // optional, "+3 more"
     public Transform cardsParent;
-    public CollectionSlotView cardSlotPrefab;
+    public PackCardView winCardPrefab;
+    public CollectionSlotView loseCardPrefab;
     public Vector2 cardSlotSize = new Vector2(110f, 150f);
     public int maxCardsShown = 4;
 
@@ -150,6 +151,31 @@ public class BattleResultPanel : MonoBehaviour
                 }
             }
         }
+        else if (!won && cachedLostCards.Count > 0)
+        {
+            // Group lost cards by name so duplicates are combined into a single entry
+            Dictionary<string, (CardData card, int countN)> uniqueLostCards = new Dictionary<string, (CardData, int)>();
+            foreach (CardData c in cachedLostCards)
+            {
+                if (c == null) continue;
+                if (uniqueLostCards.ContainsKey(c.cardName))
+                {
+                    var current = uniqueLostCards[c.cardName];
+                    uniqueLostCards[c.cardName] = (current.card, current.countN + 1);
+                }
+                else
+                {
+                    uniqueLostCards[c.cardName] = (c, 1);
+                }
+            }
+
+            // We can store the counts or use a helper dictionary, or pass them directly. 
+            // For simplicity, let's add unique cards to cardsToShow.
+            foreach (var pair in uniqueLostCards.Values)
+            {
+                cardsToShow.Add(pair.card);
+            }
+        }
 
         // reset what's on screen (all null-safe)
         if (stampImage != null)
@@ -237,42 +263,64 @@ public class BattleResultPanel : MonoBehaviour
 
     private IEnumerator RevealCards()
     {
-        if (cardSlotPrefab == null || cardsParent == null) yield break;
+        if (loseCardPrefab == null || cardsParent == null) yield break;
 
         int count = Mathf.Min(cardsToShow.Count, maxCardsShown);
         for (int i = 0; i < count; i++)
         {
             CardData card = cardsToShow[i];
-            CollectionSlotView slot = Instantiate(cardSlotPrefab, cardsParent);
-            slot.Setup(card, true, 1);
-            if (slot.countText != null) slot.countText.text = "";
-            slot.GetComponent<RectTransform>().sizeDelta = cardSlotSize;
 
             if (won)
             {
                 // WIN: pop in with the card's own sound
-                slot.transform.localScale = Vector3.zero;
-                slot.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+                if (winCardPrefab == null) yield break;
+
+                PackCardView winSlot = Instantiate(winCardPrefab, cardsParent);
+                winSlot.GetComponent<RectTransform>().sizeDelta = cardSlotSize;
+                winSlot.ShowFrontDirectly(card, true);
+
+                winSlot.transform.localScale = Vector3.zero;
+                winSlot.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+
                 GameAudio.PlaySfx(card.signatureSfx);
 
                 yield return new WaitForSeconds(0.2f);
             }
             else
             {
-                // LOSE: fade in, then turn red and wobble, with a "lost" sound
-                CanvasGroup cg = slot.GetComponent<CanvasGroup>();
-                if (cg == null) cg = slot.gameObject.AddComponent<CanvasGroup>();
+                // LOSE: Uses cardSlotPrefab with the red animation (no new badge)
+                if (loseCardPrefab == null) yield break;
+
+                CollectionSlotView loseSlot = Instantiate(loseCardPrefab, cardsParent);
+                loseSlot.Setup(card, true, 1);
+
+                // Count exact total losses for this specific card name from cachedLostCards
+                if (loseSlot.countText != null)
+                {
+                    int totalLostCount = 0;
+                    foreach (CardData c in cachedLostCards)
+                    {
+                        if (c != null && c.cardName == card.cardName) totalLostCount++;
+                    }
+
+                    loseSlot.countText.text = totalLostCount > 1 ? $"x{totalLostCount}" : "";
+                }
+
+                loseSlot.GetComponent<RectTransform>().sizeDelta = cardSlotSize;
+
+                CanvasGroup cg = loseSlot.GetComponent<CanvasGroup>();
+                if (cg == null) cg = loseSlot.gameObject.AddComponent<CanvasGroup>();
                 cg.alpha = 0f;
                 cg.DOFade(1f, 0.25f);
 
                 yield return new WaitForSeconds(0.3f);
 
-                foreach (Graphic g in slot.GetComponentsInChildren<Graphic>(true))
+                foreach (Graphic g in loseSlot.GetComponentsInChildren<Graphic>(true))
                 {
                     g.DOColor(Color.Lerp(g.color, lostCardTint, lostTintAmount), 0.3f);
                 }
 
-                slot.transform.DOPunchRotation(new Vector3(0f, 0f, 8f), 0.35f, 10, 0.6f);
+                loseSlot.transform.DOPunchRotation(new Vector3(0f, 0f, 8f), 0.35f, 10, 0.6f);
                 GameAudio.PlaySfx(cardLostSfx);
 
                 yield return new WaitForSeconds(0.25f);

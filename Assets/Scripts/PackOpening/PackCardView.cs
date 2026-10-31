@@ -76,7 +76,7 @@ public class PackCardView : MonoBehaviour
         }
     }
 
-    private void ShowFront()
+    public void ShowFront()
     {
         if (data.cardArt != null)
         {
@@ -100,5 +100,19 @@ public class PackCardView : MonoBehaviour
         }
 
         GameAudio.PlaySfx(data.signatureSfx);   // plays nothing if the card has no sound
+    }
+
+    public void ShowFrontDirectly(CardData card, bool newCard = true)
+    {
+        data = card;
+        isNew = newCard;
+        IsFlipped = true;
+        button.interactable = false;
+        transform.localScale = Vector3.one;
+
+        if (glow != null) glow.SetActive(false);
+        if (newBadge != null) newBadge.SetActive(false);
+
+        ShowFront(); // Shows card art and animates newBadge pop-in
     }
 }

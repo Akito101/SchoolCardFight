@@ -135,12 +135,12 @@ public class AILevelDeck : MonoBehaviour
             case BattleTestManager.AIType.Student:
                 deckSize = 10;
                 preferredCategory = CardCategory.Supernatural;
-                preferredCount = 8;
+                preferredCount = 4;
                 break;
             case BattleTestManager.AIType.Monitor:
                 deckSize = 15;
                 preferredCategory = CardCategory.Spirits;
-                preferredCount = 8;
+                preferredCount = 6;
                 break;
             case BattleTestManager.AIType.Teacher:
             default:

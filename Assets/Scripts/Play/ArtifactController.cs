@@ -181,9 +181,9 @@ public class ArtifactController : MonoBehaviour
         pullToCenter.Join(cardTransform.DOScale(Vector3.one * 1.4f, 0.4f).SetEase(Ease.OutQuad));
         stealSeq.Append(pullToCenter);
 
-        stealSeq.Append(AnimationController.Instance.FlipFaceUp(singleCardList, 1.5f));
+        stealSeq.Append(AnimationController.Instance.FlipFaceUp(singleCardList, 1.4f));
         stealSeq.AppendInterval(0.4f);
-        stealSeq.Append(AnimationController.Instance.FlipFaceDown(singleCardList, 1.5f));
+        stealSeq.Append(AnimationController.Instance.FlipFaceDown(singleCardList, 1.4f));
 
         // Move to artifact owner deck AND scale down to original size
         Sequence deliverSeq = DOTween.Sequence();
@@ -329,9 +329,9 @@ public class ArtifactController : MonoBehaviour
         pullToCenter.Join(cardTransform.DOScale(Vector3.one * 1.4f, 0.4f).SetEase(Ease.OutQuad));
         seq.Append(pullToCenter);
 
-        seq.Append(AnimationController.Instance.FlipFaceUp(stolenCardList, 1.5f));
+        seq.Append(AnimationController.Instance.FlipFaceUp(stolenCardList, 1.4f));
         seq.AppendInterval(0.4f);
-        seq.Append(AnimationController.Instance.FlipFaceDown(stolenCardList, 1.5f));
+        seq.Append(AnimationController.Instance.FlipFaceDown(stolenCardList, 1.4f));
 
         Sequence deliverSeq = DOTween.Sequence();
         deliverSeq.Join(cardTransform.DOAnchorPos(playerDeckView.GetComponent<RectTransform>().anchoredPosition, 0.45f).SetEase(Ease.InBack));

@@ -897,12 +897,15 @@ public class BattleTestManager : MonoBehaviour
                         return;
                     }
 
-                    artifactController.PlayerStealCard(() =>
+                    DOVirtual.DelayedCall(0.4f, () =>
                     {
-                        TeacherCancelPlayerAritifact(
-                            returnedPlayerCards,
-                            returnedAICards,
-                            () => dialogueController?.CompleteTeacherDialogueEffect());
+                        artifactController.PlayerStealCard(() =>
+                        {
+                            TeacherCancelPlayerAritifact(
+                                returnedPlayerCards,
+                                returnedAICards,
+                                () => dialogueController?.CompleteTeacherDialogueEffect());
+                        });
                     });
                 });
             return;
